@@ -24,8 +24,6 @@ As a lower bound, we hope to create an interface with a mouse-controlled brush t
 
 ### Learning Goals
 
-*What are your learning goals; that is, what do you intend to achieve by working on this project?*
-
 **Nate:** I hope to write a number of algorithms and improve my knowledge of the C language. In class so far, we've done a lot of smaller scale programming; implementing one method in a class for example. So, in accordance with this, I also want to structure our code in a nice, scalable way, such that adding another feature or expanding upon an existing one is simple and easy.
 
 **Jeremy:** I hope to improve my ability to make robust tools and data structures in a low-level
@@ -37,8 +35,6 @@ and anti-aliasing.
 
 ### Resources and Getting Started
 
-*What do you need to get started?  Have you found the resources you need, do you have a plan to find them, or do you need help?*
-
 To start off with we need to decide whether we will be building our own image editor from scratch or starting with another user's code and building on more advanced features from there. Each has it's benefits, with the former allowing us to really understand the what goes into C application building and making sure we are really thinking through the the underlying structure of the code so we can scale it later on. The latter means learning to better read, understand, and identify spots to improve in others' code, while allowing us to expand past the more basic implementation and really dwelve down into specific, technical challenges associated with each of the more advanced paint tools we would implement. Making this decision will require a bit of research and testing though we are leaning heavily towards building our own.
 
 Either way we also need to identify what graphics libraries are out there and which we want to use. We've begun searching and found several which look promising (and a few that aren't) through general searches, coding forums, and past projects.
@@ -46,8 +42,6 @@ Either way we also need to identify what graphics libraries are out there and wh
 We believe this use of the graphics API will be the most removed from the NINJA's skill set as it the most specific part contextually to our project and it's unclear how much graphics experience they would have, though their understanding of how to strucutre a C program and setting up that workflow earlier rather than later and having to rework it. Past that though we are confident both more in our own experience with each of us having taken several software classes and the NINJA's ability to help as we tackle more implementation style problems associated with each tool as opposed to the challenges that come along with learning a specific new graphics library.
 
 ### First Steps
-
-*What are your first steps?  Describe at least three concrete tasks that you can do immediately, and identify which member of the team will do them.  For each one, what is the "definition of done"; that is, what will you produce to demonstrate that the task is done?*
 
 Our very first step will be creating an application window, displaying figures on that window, and receiving keystrokes and mouse events. Nate will be tackling this task. This step will be considered "done" when we can successfully display pixel values, images, and text to an application window and can successfully catch key and mouse events. This step is integral to the application, as we will not be able to make our tool interactive without being able to display information and receive input from the user.
 
