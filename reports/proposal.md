@@ -1,9 +1,26 @@
-# Project Proposal
+# paint.c - Project Proposal
 ## Jeremy Ryan, Nate Sampo, Benjamin Ziemann
+
 
 ### Project Goal
 
-*What is the goal of your project; for example, what do you plan to make, and what should it do?  Identify a lower bound you are confident you can achieve and a stretch goal that is more ambitious.*
+For this project, we aim to create a basic image editing program in C. We will draw inspiration from the tools, functionality, and interfaces of other programs, such as Microsoft Paint, Paint.NET, and GIMP.
+
+As a lower bound, we hope to create an interface with a mouse-controlled brush that can draw black pixels on a white canvas and export to a common image format. As stretch goals, we would like to implement several additional tools and features:
+
+- **Reading:** Loading images from an image file, which you can edit and save.
+
+- **Colors:** Drawing in arbitrary colors, perhaps with variable opacity.
+
+- **Fill tool:** Applying a color to all adjacent pixels with similar values.
+
+- **Shape tool:** Drawing shapes onto the canvas.
+
+- **Line tool:** Drawing lines onto the screen, perhaps with variable thickness or anti-aliasing.
+
+- **Canvas tools:** Cropping, resizing, or otherwise manipulating the image as a whole.
+
+- **More:** Other features found in image editing software.
 
 ### Learning Goals
 
@@ -11,7 +28,10 @@
 
 **Nate:** I am Nate.
 
-**Jeremy:** I am Jeremy.
+**Jeremy:** I hope to improve my ability to make robust tools and data structures in a low-level
+language, which can be integrated well with other people's code. Additionally, I
+would like to explore the math and algorithms behind tools like the fill tool, image resizing,
+and anti-aliasing.
 
 **Ben:** I would like to get a better creating structures and frameworks to better allow for scalability. This projects seems to work well with this goal as it will be important how we first set up our project so that as we expand to more and more tools it will be intuitive how they will interact with the larger application, and how they interact with each other. I'd also to get better at working with APIs, a necessity given we will be working with a grpahics library.
 
