@@ -1,4 +1,4 @@
-# paint.c - Project Proposal
+# Project Proposal
 ## Jeremy Ryan, Nate Sampo, Benjamin Ziemann
 
 ### Project Goal
