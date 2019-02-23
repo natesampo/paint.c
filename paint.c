@@ -5,7 +5,7 @@
 
 static void print_hello(GtkWidget *widget, gpointer data)
 {
-	g_print ("Hello World\n");
+	g_print("Hello World\n");
 }
 
 static void activate(GtkApplication *app, gpointer user_data)
@@ -18,24 +18,23 @@ static void activate(GtkApplication *app, gpointer user_data)
 	window = gtk_application_window_new(app);
 	gtk_window_set_title(GTK_WINDOW(window), "Window");
 	gtk_window_set_default_size(GTK_WINDOW(window), WIDTH, HEIGHT);
-	gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
-	gtk_container_set_border_width(GTK_CONTAINER (window), 10);
+	gtk_container_set_border_width(GTK_CONTAINER(window), 10);
 
 	/* Here we construct the container that is going pack our buttons */
 	grid = gtk_grid_new ();
 
 	/* Pack the container in the window */
-	gtk_container_add (GTK_CONTAINER (window), grid);
+	gtk_container_add(GTK_CONTAINER (window), grid);
 
-	button = gtk_button_new_with_label ("Button 1");
+	button = gtk_button_new_with_label("Button 1");
 	g_signal_connect(button, "clicked", G_CALLBACK(print_hello), NULL);
 
 	/* Place the first button in the grid cell (0, 0), and make it fill
 	* just 1 cell horizontally and vertically (ie no spanning)
 	*/
-	gtk_grid_attach (GTK_GRID (grid), button, 0, 0, 1, 1);
+	gtk_grid_attach(GTK_GRID (grid), button, 0, 0, 1, 1);
 
-	button = gtk_button_new_with_label ("Button 2");
+	button = gtk_button_new_with_label("Button 2");
 	g_signal_connect(button, "clicked", G_CALLBACK(print_hello), NULL);
 
 	/* Place the second button in the grid cell (1, 0), and make it fill
