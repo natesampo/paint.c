@@ -1,5 +1,8 @@
 #include <gtk/gtk.h>
 
+#define WIDTH 1000
+#define HEIGHT 800
+
 static void print_hello(GtkWidget *widget, gpointer data)
 {
 	g_print ("Hello World\n");
@@ -13,8 +16,8 @@ static void activate(GtkApplication *app, gpointer user_data)
 
 	/* create a new window, and set its title */
 	window = gtk_application_window_new(app);
-	gtk_window_set_title (GTK_WINDOW(window), "Window");
-	gtk_window_set_default_size(GTK_WINDOW(window), 1000, 800);
+	gtk_window_set_title(GTK_WINDOW(window), "Window");
+	gtk_window_set_default_size(GTK_WINDOW(window), WIDTH, HEIGHT);
 	gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
 	gtk_container_set_border_width(GTK_CONTAINER (window), 10);
 
