@@ -4,8 +4,6 @@
 
 #define WINDOW_WIDTH 1000
 #define WINDOW_HEIGHT 800
-#define DEFAULT_WIDTH 500
-#define DEFAULT_HEIGHT 500
 #define COLOR_CHANNELS 4
 #define CHAR_DEPTH 2
 
@@ -35,21 +33,87 @@ static char* decimal_to_hex(int n) {
 
 // NOTE: Assumes 4 color channel values
 static void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) {
-	image.data[x][y][0][0] = decimal_to_hex(r)[0];
-	image.data[x][y][0][1] = decimal_to_hex(r)[1];
-	image.data[x][y][1][0] = decimal_to_hex(g)[0];
-	image.data[x][y][1][1] = decimal_to_hex(g)[1];
-	image.data[x][y][2][0] = decimal_to_hex(b)[0];
-	image.data[x][y][2][1] = decimal_to_hex(b)[1];
-	image.data[x][y][3][0] = decimal_to_hex(a)[0];
-	image.data[x][y][3][1] = decimal_to_hex(a)[1];
+	char *red = decimal_to_hex(r);
+	char *green = decimal_to_hex(g);
+	char *blue = decimal_to_hex(b);
+	char *alpha = decimal_to_hex(a);
+
+	image.data[x][y][0][0] = red[0];
+	image.data[x][y][0][1] = red[1];
+	image.data[x][y][1][0] = green[0];
+	image.data[x][y][1][1] = green[1];
+	image.data[x][y][2][0] = blue[0];
+	image.data[x][y][2][1] = blue[1];
+	image.data[x][y][3][0] = alpha[0];
+	image.data[x][y][3][1] = alpha[1];
+
+	free(red);
+	free(green);
+	free(blue);
+	free(alpha);
 }
 
-static void save_pdc(struct Image image) {
+static struct Image load_pdc(char *file_name) {
+	int input_char;
+	int width = 0, height = 0, i = 0, j = 0, k = 0, l = 0;
+	struct Image image;
+	FILE *input_file;
+
+	input_file = fopen(file_name, "r");
+
+	while((input_char = getc(input_file)) != '\n') {
+		width = 10*width + input_char - 48;
+	}
+
+	while((input_char = getc(input_file)) != '\n') {
+		height = 10*height + input_char - 48;
+	}
+
+	image.width = width;
+	image.height = height;
+
+	image.data = (char ****) malloc(image.width * sizeof(char ***));
+	image.data[0] = (char ***) malloc(image.height * sizeof(char **));
+	image.data[0][0] = (char **) malloc(COLOR_CHANNELS * sizeof(char *));
+	image.data[0][0][0] = (char *) malloc(CHAR_DEPTH * sizeof(char));
+
+	while((input_char = getc(input_file)) != EOF) {
+		image.data[i][j][k][l] = input_char;
+
+		if (l == CHAR_DEPTH - 1) {
+			l = 0;
+			k++;
+			image.data[i][j][k] = (char *) malloc(CHAR_DEPTH * sizeof(char));
+		} else {
+			l++;
+		}
+
+		if (k == COLOR_CHANNELS) {
+			k = 0;
+			j++;
+			image.data[i][j] = (char **) malloc(COLOR_CHANNELS * sizeof(char *));
+			image.data[i][j][k] = (char *) malloc(CHAR_DEPTH * sizeof(char));
+		}
+
+		if (j == image.height) {
+			j = 0;
+			i++;
+			image.data[i] = (char ***) malloc(image.height * sizeof(char **));
+			image.data[i][j] = (char **) malloc(COLOR_CHANNELS * sizeof(char *));
+			image.data[i][j][k] = (char *) malloc(CHAR_DEPTH * sizeof(char));
+		}
+	}
+
+	fclose(input_file);
+
+	return image;
+}
+
+static void save_pdc(struct Image image, char *file_name) {
 	int i, j, k, l;
 	FILE *output_file;
 
-	output_file = fopen("wow.pdc", "w");
+	output_file = fopen(file_name, "w");
 
 	fprintf(output_file, "%d", image.width);
 	fputs("\n", output_file);
@@ -74,12 +138,12 @@ static void save_pdc(struct Image image) {
 	fclose(output_file);
 }
 
-static struct Image initialize_image() {
+static struct Image initialize_image(int width, int height) {
 	int i, j, k, l;
 	struct Image image;
 
-	image.width = DEFAULT_WIDTH;
-	image.height = DEFAULT_HEIGHT;
+	image.width = width;
+	image.height = height;
 	image.data = (char ****) malloc(image.width * sizeof(char ***));
 
 	for (i=0; i<image.width; i++) {
@@ -161,16 +225,14 @@ int main(int argc, char **argv) {
 	int status;
 	struct Image image;
 
-	image = initialize_image();
+	image = initialize_image(500, 500);
 
 	app = gtk_application_new("org.gtk.example", G_APPLICATION_FLAGS_NONE);
 	g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
 	status = g_application_run(G_APPLICATION (app), argc, argv);
 	g_object_unref(app);
 
-	update_pixel(image, 0, 0, 200, 200, 200, 200);
-
-	save_pdc(image);
+	save_pdc(image, "wow.pdc");
 
 	return status;
 }
