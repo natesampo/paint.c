@@ -64,7 +64,7 @@ static void save_pdc(struct Image image) {
 
 				for (l=0; l<CHAR_DEPTH; l++) {
 
-					//fputs(image.data[i][j][k][l], output_file);
+					fprintf(output_file, "%c", image.data[i][j][k][l]);
 
 				}
 			}
