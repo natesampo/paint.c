@@ -7,11 +7,47 @@
 #define COLOR_CHANNELS 4
 #define CHAR_DEPTH 2
 
+
 struct Image {
 	int width, height;
 	char ****data;
 };
 
+struct Image* image_ptr;
+
+
+/* Takes a char pointer to a 2-digit hexidecimal number and returns its integer value.
+ *
+ * Hex value must be exactly two characters, and only contain numbers 0-9
+ * and lowercase letters a-f.
+ */
+int hex2d(char* hex) {
+
+	int total = 0;
+	for (int i = 0; i < 2; i++) {
+
+		switch (hex[i]) {
+
+			// Increment total based on new digit
+			case '0': case '1': case '2': case '3': case '4':
+			case '5': case '6': case '7': case '8': case '9':
+				total *= 16;
+				total += hex[i] - '0';
+				break;
+
+			case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
+				total *= 16;
+				total += hex[i] - 'a' + 10;
+				break;
+
+		}
+	}
+	return total;
+}
+
+/* Converts an integer value into its hexidecimal equivalent, and returns a
+ * pointer to a memory-allocated char array. Must be freed by caller.
+ */
 static char* decimal_to_hex(int n) {
 	int i, digit;
 	char *hex = (char*) malloc(sizeof(char) * (CHAR_DEPTH + 1));
@@ -171,10 +207,61 @@ static void print_hello(GtkWidget *widget, gpointer data) {
 	g_print("Hello World\n");
 }
 
+/* Draw a single RGBA pixel on the canvas at position x, y */
+gboolean render_pixel(GtkWidget* canvas, cairo_t* cr, int x, int y, int r, int g, int b, int a) {
+
+	GdkRGBA color;
+	color.red = r/255.0;
+	color.green = g/255.0;
+	color.blue = b/255.0;
+	color.alpha = a/255.0;
+	gdk_cairo_set_source_rgba (cr, &color);
+	cairo_rectangle(cr, x, y, 1, 1);
+	cairo_fill(cr);
+
+	return FALSE;
+
+}
+
+gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
+
+	// Initialize variables for height, width, and color
+	guint width, height, img_width, img_height;
+	GdkRGBA color;
+	GtkStyleContext* context;
+
+	// Read context, width, and height from canvas struct
+	context = gtk_widget_get_style_context(canvas);
+	width = gtk_widget_get_allocated_width(canvas);
+	height = gtk_widget_get_allocated_height(canvas);
+
+	// Draw the weird, grayish background
+	gtk_render_background(context, cr, 0, 0, width, height);
+
+	img_width = (*image_ptr).width;
+	img_height = (*image_ptr).height;
+
+	for (int i = 0; i < width; i++) {
+		for (int j = 0; j < height; j++) {
+			int c[COLOR_CHANNELS];
+			for (int k = 0; k < COLOR_CHANNELS; k++) {
+				c[k] = hex2d(((*image_ptr).data)[i][j][k]);
+			}
+			render_pixel(canvas, cr, i, j, c[0], c[1], c[2], c[3]);
+		}
+	}
+
+	return FALSE;
+
+}
+
 static void activate(GtkApplication *app, gpointer user_data) {
+
 	GtkWidget *window;
 	GtkWidget *grid;
 	GtkWidget *button;
+	GtkWidget *canvas;
+	GtkWidget *canvas_grid;
 
 	/* create a new window, and set its title */
 	window = gtk_application_window_new(app);
@@ -212,6 +299,13 @@ static void activate(GtkApplication *app, gpointer user_data) {
 	*/
 	gtk_grid_attach(GTK_GRID(grid), button, 0, 1, 2, 1);
 
+	/* Create canvas as drawing_area object, and set size */
+	canvas = gtk_drawing_area_new();
+	gtk_widget_set_size_request(canvas, WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
+	gtk_grid_attach(GTK_GRID(grid), canvas, 2, 2, 1, 1);
+	g_signal_connect (G_OBJECT (canvas), "draw",
+									G_CALLBACK (update_canvas), NULL);
+
 	/* Now that we are done packing our widgets, we show them all
 	* in one go, by calling gtk_widget_show_all() on the window.
 	* This call recursively calls gtk_widget_show() on all widgets
@@ -221,9 +315,14 @@ static void activate(GtkApplication *app, gpointer user_data) {
 }
 
 int main(int argc, char **argv) {
+
 	GtkApplication *app;
+
 	int status;
 	struct Image image;
+	image_ptr = &image;
+
+	int i, j, k, l;
 
 	image = initialize_image(500, 500);
 
