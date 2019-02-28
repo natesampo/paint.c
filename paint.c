@@ -67,6 +67,7 @@ static char* decimal_to_hex(int n) {
 	return hex;
 }
 
+/* Updates one pixel in the image with the values passed */
 // NOTE: Assumes 4 color channel values
 static void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) {
 	char *red = decimal_to_hex(r);
@@ -89,6 +90,7 @@ static void update_pixel(struct Image image, int x, int y, int r, int g, int b, 
 	free(alpha);
 }
 
+/* Load an image from a pdc file */
 static struct Image load_pdc(char *file_name) {
 	int input_char;
 	int width = 0, height = 0, i = 0, j = 0, k = 0, l = 0;
@@ -145,6 +147,7 @@ static struct Image load_pdc(char *file_name) {
 	return image;
 }
 
+/* Save the image argument as the file name in pdc format */
 static void save_pdc(struct Image image, char *file_name) {
 	int i, j, k, l;
 	FILE *output_file;
@@ -174,6 +177,7 @@ static void save_pdc(struct Image image, char *file_name) {
 	fclose(output_file);
 }
 
+/* Create and allocate memory for an empty image of the specified width and height. Fill white. */
 static struct Image initialize_image(int width, int height) {
 	int i, j, k, l;
 	struct Image image;
@@ -321,8 +325,6 @@ int main(int argc, char **argv) {
 	int status;
 	struct Image image;
 	image_ptr = &image;
-
-	int i, j, k, l;
 
 	image = initialize_image(500, 500);
 
