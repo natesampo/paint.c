@@ -17,14 +17,20 @@ struct Image {
 
 struct Image* image_ptr;
 
+
+/* Takes a char pointer to a 2-digit hexidecimal number and returns its integer value.
+ *
+ * Hex value must be exactly two characters, and only contain numbers 0-9
+ * and lowercase letters a-f.
+ */
 int hex2d(char* hex) {
 
 	int total = 0;
 	for (int i = 0; i < 2; i++) {
 
-		int this_dig = 0;
 		switch (hex[i]) {
 
+			// Increment total based on new digit
 			case '0': case '1': case '2': case '3': case '4':
 			case '5': case '6': case '7': case '8': case '9':
 				total *= 16;
@@ -37,13 +43,13 @@ int hex2d(char* hex) {
 				break;
 
 		}
-
 	}
-
 	return total;
-
 }
 
+/* Converts an integer value into its hexidecimal equivalent, and returns a
+ * pointer to a memory-allocated char array. Must be freed by caller.
+ */
 static char* decimal_to_hex(int n) {
 	int i, digit;
 	char *hex = (char*) malloc(sizeof(char) * (CHAR_DEPTH + 1));
@@ -105,6 +111,7 @@ static void save_pdc(struct Image image) {
 	fclose(output_file);
 }
 
+
 static struct Image initialize_image() {
 	int i, j, k, l;
 	struct Image image;
@@ -124,8 +131,7 @@ static struct Image initialize_image() {
 
 				for (l=0; l<CHAR_DEPTH; l++) {
 
-					image.data[i][j][k][l] = '0';
-					if (k > 1) image.data[i][j][k][l] = '8';
+					image.data[i][j][k][l] = 'f';
 
 				}
 			}
