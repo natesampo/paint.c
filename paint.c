@@ -75,8 +75,8 @@ static void update_pixel(struct Image image, int x, int y, int r, int g, int b, 
 	image.data[x][y][3][1] = decimal_to_hex(a)[1];
 }
 
-static void save_pdc(struct Image image)
-{
+
+static void save_pdc(struct Image image) {
 	int i, j, k, l;
 	FILE *output_file;
 
@@ -95,7 +95,7 @@ static void save_pdc(struct Image image)
 
 				for (l=0; l<CHAR_DEPTH; l++) {
 
-					//fputs(image.data[i][j][k][l], output_file);
+					fprintf(output_file, "%c", image.data[i][j][k][l]);
 
 				}
 			}
@@ -189,6 +189,7 @@ gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
 
 static void activate(GtkApplication *app, gpointer user_data)
 {
+
 	GtkWidget *window;
 	GtkWidget *grid;
 	GtkWidget *button;
@@ -245,7 +246,6 @@ static void activate(GtkApplication *app, gpointer user_data)
 	*/
 	gtk_widget_show_all(window);
 }
-
 
 int main(int argc, char **argv)
 {
