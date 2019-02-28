@@ -44,6 +44,37 @@ int hex2d(char* hex) {
 
 }
 
+static char* decimal_to_hex(int n) {
+	int i, digit;
+	char *hex = (char*) malloc(sizeof(char) * (CHAR_DEPTH + 1));
+
+	for (i=0; i<CHAR_DEPTH; i++) {
+		digit = n % 16;
+
+		if (digit < 10) {
+			hex[CHAR_DEPTH - i - 1] = 48 + digit;
+		} else {
+			hex[CHAR_DEPTH - i - 1] = 87 + digit;
+		}
+
+		n /= 16;
+	}
+
+	return hex;
+}
+
+// NOTE: Assumes 4 color channel values
+static void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) {
+	image.data[x][y][0][0] = decimal_to_hex(r)[0];
+	image.data[x][y][0][1] = decimal_to_hex(r)[1];
+	image.data[x][y][1][0] = decimal_to_hex(g)[0];
+	image.data[x][y][1][1] = decimal_to_hex(g)[1];
+	image.data[x][y][2][0] = decimal_to_hex(b)[0];
+	image.data[x][y][2][1] = decimal_to_hex(b)[1];
+	image.data[x][y][3][0] = decimal_to_hex(a)[0];
+	image.data[x][y][3][1] = decimal_to_hex(a)[1];
+}
+
 static void save_pdc(struct Image image)
 {
 	int i, j, k, l;
@@ -57,10 +88,15 @@ static void save_pdc(struct Image image)
 	fputs("\n", output_file);
 
 	for (i=0; i<image.width; i++) {
+
 		for (j=0; j<image.height; j++) {
+
 			for (k=0; k<COLOR_CHANNELS; k++) {
+
 				for (l=0; l<CHAR_DEPTH; l++) {
-					fputs(&image.data[i][j][k][l], output_file);
+
+					//fputs(image.data[i][j][k][l], output_file);
+
 				}
 			}
 		}
@@ -69,8 +105,37 @@ static void save_pdc(struct Image image)
 	fclose(output_file);
 }
 
-static void print_hello(GtkWidget *widget, gpointer data)
-{
+static struct Image initialize_image() {
+	int i, j, k, l;
+	struct Image image;
+
+	image.width = DEFAULT_WIDTH;
+	image.height = DEFAULT_HEIGHT;
+	image.data = (char ****) malloc(image.width * sizeof(char ***));
+
+	for (i=0; i<image.width; i++) {
+		image.data[i] = (char ***) malloc(image.height * sizeof(char **));
+
+		for (j=0; j<image.width; j++) {
+			image.data[i][j] = (char **) malloc(COLOR_CHANNELS * sizeof(char *));
+
+			for (k=0; k<COLOR_CHANNELS; k++) {
+				image.data[i][j][k] = (char *) malloc(CHAR_DEPTH * sizeof(char));
+
+				for (l=0; l<CHAR_DEPTH; l++) {
+
+					image.data[i][j][k][l] = '0';
+					if (k > 1) image.data[i][j][k][l] = '8';
+
+				}
+			}
+		}
+	}
+
+	return image;
+}
+
+static void print_hello(GtkWidget *widget, gpointer data) {
 	g_print("Hello World\n");
 }
 
@@ -78,10 +143,10 @@ static void print_hello(GtkWidget *widget, gpointer data)
 gboolean render_pixel(GtkWidget* canvas, cairo_t* cr, int x, int y, int r, int g, int b, int a) {
 
 	GdkRGBA color;
-	color.red = r;
-	color.green = g;
-	color.blue = b;
-	color.alpha = a;
+	color.red = r/255.0;
+	color.green = g/255.0;
+	color.blue = b/255.0;
+	color.alpha = a/255.0;
   gdk_cairo_set_source_rgba (cr, &color);
 	cairo_rectangle(cr, x, y, 1, 1);
 	cairo_fill(cr);
@@ -193,30 +258,14 @@ int main(int argc, char **argv)
 
 	int i, j, k, l;
 
-	image.width = DEFAULT_WIDTH;
-	image.height = DEFAULT_HEIGHT;
-	image.data = (char ****) malloc(image.width * sizeof(char ***));
-
-	for (i=0; i<image.width; i++) {
-		image.data[i] = (char ***) malloc(image.height * sizeof(char **));
-
-		for (j=0; j<image.width; j++) {
-			image.data[i][j] = (char **) malloc(COLOR_CHANNELS * sizeof(char *));
-
-			for (k=0; k<COLOR_CHANNELS; k++) {
-				image.data[i][j][k] = (char *) malloc(CHAR_DEPTH * sizeof(char));
-
-				for (l=0; l<CHAR_DEPTH; l++) {
-					image.data[i][j][k][l] = 'f';
-				}
-			}
-		}
-	}
+	image = initialize_image();
 
 	app = gtk_application_new("org.gtk.example", G_APPLICATION_FLAGS_NONE);
-	g_signal_connect(app, "activate", G_CALLBACK (activate), NULL);
+	g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
 	status = g_application_run(G_APPLICATION (app), argc, argv);
 	g_object_unref(app);
+
+	update_pixel(image, 0, 0, 200, 200, 200, 200);
 
 	save_pdc(image);
 
