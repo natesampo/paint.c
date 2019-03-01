@@ -99,10 +99,12 @@ static struct Image load_pdc(char *file_name) {
 
 	input_file = fopen(file_name, "r");
 
+	// Read width from PDC file header
 	while((input_char = getc(input_file)) != '\n') {
 		width = 10*width + input_char - 48;
 	}
 
+	// Read height from PDC file header
 	while((input_char = getc(input_file)) != '\n') {
 		height = 10*height + input_char - 48;
 	}
@@ -110,14 +112,17 @@ static struct Image load_pdc(char *file_name) {
 	image.width = width;
 	image.height = height;
 
+	// Allocate initial character arrays
 	image.data = (char ****) malloc(image.width * sizeof(char ***));
 	image.data[0] = (char ***) malloc(image.height * sizeof(char **));
 	image.data[0][0] = (char **) malloc(COLOR_CHANNELS * sizeof(char *));
 	image.data[0][0][0] = (char *) malloc(CHAR_DEPTH * sizeof(char));
 
+	// Populate entire image array by reading one character at a time from the pdc file
 	while((input_char = getc(input_file)) != EOF) {
 		image.data[i][j][k][l] = input_char;
 
+		// If we reach the character depth limit, move on to next color channel
 		if (l == CHAR_DEPTH - 1) {
 			l = 0;
 			k++;
@@ -126,6 +131,7 @@ static struct Image load_pdc(char *file_name) {
 			l++;
 		}
 
+		// If we reach the last color channel, move on to the next column
 		if (k == COLOR_CHANNELS) {
 			k = 0;
 			j++;
@@ -133,6 +139,7 @@ static struct Image load_pdc(char *file_name) {
 			image.data[i][j][k] = (char *) malloc(CHAR_DEPTH * sizeof(char));
 		}
 
+		// If we reach the end of a column, move on to the next row
 		if (j == image.height) {
 			j = 0;
 			i++;
@@ -147,7 +154,16 @@ static struct Image load_pdc(char *file_name) {
 	return image;
 }
 
-/* Save the image argument as the file name in pdc format */
+/*
+	Save the image argument as the file name in pdc format
+
+	PDC format:
+	WIDTH\n
+	HEIGHT\n
+	DATA
+
+	NOTE: There are no seperations in the data of the image file, ie no tabs, spaces, or newlines
+*/
 static void save_pdc(struct Image image, char *file_name) {
 	int i, j, k, l;
 	FILE *output_file;
@@ -177,7 +193,7 @@ static void save_pdc(struct Image image, char *file_name) {
 	fclose(output_file);
 }
 
-/* Create and allocate memory for an empty image of the specified width and height. Fill white. */
+/* Create and allocate memory for a filled image of the specified width and height */
 static struct Image initialize_image(int width, int height) {
 	int i, j, k, l;
 	struct Image image;
@@ -197,6 +213,7 @@ static struct Image initialize_image(int width, int height) {
 
 				for (l=0; l<CHAR_DEPTH; l++) {
 
+					// Fill white
 					image.data[i][j][k][l] = 'f';
 
 				}
