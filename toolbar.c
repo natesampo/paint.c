@@ -5,31 +5,31 @@
 
 
 
-static void selecter(GtkWidget *widget, gpointer data){
+static void selecter(GtkWidget *widget, gpointer data, int *tool){
 	g_print ("Selection tool\n");
 }
 
-static void move(GtkWidget *widget, gpointer data){
+static void move(GtkWidget *widget, gpointer data, int *tool){
 	g_print ("Move tool\n");
 }
 
-static void pencil(GtkWidget *widget, gpointer data){
+static void pencil(GtkWidget *widget, gpointer data, int *tool){
 	g_print ("Pencil tool\n");
 }
 
-static void eraser(GtkWidget *widget, gpointer data){
+static void eraser(GtkWidget *widget, gpointer data, int *tool){
 	g_print ("Eraser tool\n");
 }
 
-static void text(GtkWidget *widget, gpointer data){
+static void text(GtkWidget *widget, gpointer data, int *tool){
 	g_print ("Text tool\n");
 }
 
-static void bucket(GtkWidget *widget, gpointer data){
+static void bucket(GtkWidget *widget, gpointer data, int *tool){
 	g_print ("Paint bucket tool\n");
 }
 
-static void picker(GtkWidget *widget, gpointer data){
+static void picker(GtkWidget *widget, gpointer data, int *tool){
 	GtkWidget *colorWheel = gtk_color_chooser_dialog_new ("Colors", NULL);
 	gtk_dialog_run(colorWheel);
 	gtk_widget_destroy(colorWheel);
@@ -42,6 +42,8 @@ static void activate(GtkApplication *app, gpointer user_data){
 	GtkWidget *button;
 	GtkWidget *image;
 	GdkPixbuf *pixbuf;
+
+	int *tool;
 
 	/* create a new window, and set its title */
 	window = gtk_application_window_new(app);
