@@ -1,60 +1,67 @@
 #include <gtk/gtk.h>
+#include "toolbar.h"
+#include "paint.h"
 
 #define WIDTH 50
 #define HEIGHT 100
 
 static int tool = 1;
 static GdkRGBA color;
+static struct hexColor curr_color;
 
 //Button functions
-static void selecter(GtkWidget *widget, gpointer datal){
+void selecter(GtkWidget *widget, gpointer datal){
 	g_print ("Selection tool\n");
 	tool = 1;
 
 }
-static void move(GtkWidget *widget, gpointer data){
+void move(GtkWidget *widget, gpointer data){
 	g_print ("Move tool\n");
 	tool = 2;
 }
 
-static void pencil(GtkWidget *widget, gpointer data){
+void pencil(GtkWidget *widget, gpointer data){
 	g_print ("Pencil tool\n");
 	tool = 3;
 }
 
-static void eraser(GtkWidget *widget, gpointer data){
+void eraser(GtkWidget *widget, gpointer data){
 	g_print ("Eraser tool\n");
 	tool = 4;
 }
 
-static void text(GtkWidget *widget, gpointer data){
+void text(GtkWidget *widget, gpointer data){
 	g_print ("Text tool\n");
 	tool = 5;
 }
 
-static void bucket(GtkWidget *widget, gpointer data){
+void bucket(GtkWidget *widget, gpointer data){
 	g_print ("Paint bucket tool\n");
 	tool = 6;
 }
 
-static void picker(GtkWidget *widget, gpointer data){
+void picker(GtkWidget *widget, gpointer data){
 	GtkWidget *colorWheel;
 	colorWheel = gtk_color_chooser_dialog_new ("Colors", NULL);
 	int response = gtk_dialog_run(colorWheel);
 
 	gtk_color_chooser_get_rgba(colorWheel, &color);
-	g_print("After select:\n");
-	g_print("red %f\n", color.red*255);
-	g_print("green %f\n", color.green*255);
-	g_print("blue %f\n", color.blue*255);
+	curr_color.red = decimal_to_hex(color.red*255);
+	curr_color.green= decimal_to_hex(color.green*255);
+	curr_color.blue= decimal_to_hex(color.blue*255);
 	gtk_widget_destroy(colorWheel);
+
+	g_print("After select:\n");
+	g_print("red %f\n", curr_color.red);
+	g_print("green %f\n", curr_color.green);
+	g_print("blue %f\n", curr_color.blue);
 	tool = 7;
 
 }
 
 
 //Primary windows
-static void activate(GtkApplication *app, gpointer user_data){
+void activate(GtkApplication *app, gpointer user_data){
 	GtkWidget *window;
 	GtkWidget *grid;
 	GtkWidget *button;
