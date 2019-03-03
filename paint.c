@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <gtk/gtk.h>
+#include <time.h>
 
 #define WINDOW_WIDTH 1000
 #define WINDOW_HEIGHT 800
@@ -94,9 +95,23 @@ static void update_pixel(struct Image image, int x, int y, int r, int g, int b, 
 	free(alpha);
 }
 
+static void draw_line(int x1, int y1, int x2, int y2) {
+	int i;
+
+	for(i=0; i<abs(x1-x2); i++) {
+		//update_pixel(*image_ptr, int(x1 - float(i)/float(x1-x2)));
+	}
+}
+
 static void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
+	printf("%ld\n", time(0));
+
 	if (event->state & GDK_BUTTON1_MASK) {
 		update_pixel(*image_ptr, event->x, event->y, 0, 0, 0, 255);
+		update_pixel(*image_ptr, event->x+1, event->y, 0, 0, 0, 255);
+		update_pixel(*image_ptr, event->x, event->y+1, 0, 0, 0, 255);
+		update_pixel(*image_ptr, event->x+1, event->y+1, 0, 0, 0, 255);
+		//gtk_widget_queue_draw_area(widget, event->x, event->y, 1, 1);
 	}
 }
 
@@ -301,22 +316,6 @@ static void activate(GtkApplication *app, gpointer user_data) {
 
 	/* Pack the container in the window */
 	gtk_container_add(GTK_CONTAINER(window), grid);
-
-	button = gtk_button_new_with_label("Button 1");
-	g_signal_connect(button, "clicked", G_CALLBACK(print_hello), NULL);
-
-	/* Place the first button in the grid cell (0, 0), and make it fill
-	* just 1 cell horizontally and vertically (ie no spanning)
-	*/
-	gtk_grid_attach(GTK_GRID(grid), button, 0, 0, 1, 1);
-
-	button = gtk_button_new_with_label("Button 2");
-	g_signal_connect(button, "clicked", G_CALLBACK(print_hello), NULL);
-
-	/* Place the second button in the grid cell (1, 0), and make it fill
-	* just 1 cell horizontally and vertically (ie no spanning)
-	*/
-	gtk_grid_attach(GTK_GRID(grid), button, 1, 0, 1, 1);
 
 	button = gtk_button_new_with_label("Quit");
 	g_signal_connect_swapped(button, "clicked", G_CALLBACK(gtk_widget_destroy), window);
