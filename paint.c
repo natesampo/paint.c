@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
 #include <time.h>
+#include "paint.h"
 
 #define WINDOW_WIDTH 1000
 #define WINDOW_HEIGHT 800
@@ -9,17 +10,9 @@
 #define CHAR_DEPTH 2
 
 
-struct Image {
-	int width, height;
-	char ****data;
-};
-
 struct Image* image_ptr;
 
 
-static void print_hello(GtkWidget *widget, gpointer data) {
-	g_print("Hello World\n");
-}
 
 /* Takes a char pointer to a 2-digit hexidecimal number and returns its integer value.
  *
@@ -53,7 +46,7 @@ int hex2d(char* hex) {
 /* Converts an integer value into its hexidecimal equivalent, and returns a
  * pointer to a memory-allocated char array. Must be freed by caller.
  */
-static char* decimal_to_hex(int n) {
+char* decimal_to_hex(int n) {
 	int i, digit;
 	char *hex = (char*) malloc(sizeof(char) * (CHAR_DEPTH + 1));
 
@@ -74,7 +67,7 @@ static char* decimal_to_hex(int n) {
 
 /* Updates one pixel in the image with the values passed */
 // NOTE: Assumes 4 color channel values
-static void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) {
+void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) {
 	char *red = decimal_to_hex(r);
 	char *green = decimal_to_hex(g);
 	char *blue = decimal_to_hex(b);
@@ -103,7 +96,7 @@ static void draw_line(int x1, int y1, int x2, int y2) {
 	}
 }
 
-static void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
+void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
 	printf("%ld\n", time(0));
 
 	if (event->state & GDK_BUTTON1_MASK) {
@@ -116,7 +109,7 @@ static void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointe
 }
 
 /* Load an image from a pdc file */
-static struct Image load_pdc(char *file_name) {
+struct Image load_pdc(char *file_name) {
 	int input_char;
 	int width = 0, height = 0, i = 0, j = 0, k = 0, l = 0;
 	struct Image image;
@@ -189,7 +182,7 @@ static struct Image load_pdc(char *file_name) {
 
 	NOTE: There are no seperations in the data of the image file, ie no tabs, spaces, or newlines
 */
-static void save_pdc(struct Image image, char *file_name) {
+void save_pdc(struct Image image, char *file_name) {
 	int i, j, k, l;
 	FILE *output_file;
 
@@ -219,7 +212,7 @@ static void save_pdc(struct Image image, char *file_name) {
 }
 
 /* Create and allocate memory for a filled image of the specified width and height */
-static struct Image initialize_image(int width, int height) {
+struct Image initialize_image(int width, int height) {
 	int i, j, k, l;
 	struct Image image;
 
@@ -297,7 +290,7 @@ gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
 
 }
 
-static void activate(GtkApplication *app, gpointer user_data) {
+void activate(GtkApplication *app, gpointer user_data) {
 
 	GtkWidget *window;
 	GtkWidget *grid;
