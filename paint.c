@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <gtk/gtk.h>
+#include "paint.h"
 
 #define WINDOW_WIDTH 1000
 #define WINDOW_HEIGHT 800
@@ -8,12 +9,8 @@
 #define CHAR_DEPTH 2
 
 
-struct Image {
-	int width, height;
-	char ****data;
-};
-
 struct Image* image_ptr;
+
 
 
 /* Takes a char pointer to a 2-digit hexidecimal number and returns its integer value.
@@ -48,7 +45,7 @@ int hex2d(char* hex) {
 /* Converts an integer value into its hexidecimal equivalent, and returns a
  * pointer to a memory-allocated char array. Must be freed by caller.
  */
-static char* decimal_to_hex(int n) {
+char* decimal_to_hex(int n) {
 	int i, digit;
 	char *hex = (char*) malloc(sizeof(char) * (CHAR_DEPTH + 1));
 
@@ -69,7 +66,7 @@ static char* decimal_to_hex(int n) {
 
 /* Updates one pixel in the image with the values passed */
 // NOTE: Assumes 4 color channel values
-static void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) {
+void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) {
 	char *red = decimal_to_hex(r);
 	char *green = decimal_to_hex(g);
 	char *blue = decimal_to_hex(b);
@@ -90,8 +87,14 @@ static void update_pixel(struct Image image, int x, int y, int r, int g, int b, 
 	free(alpha);
 }
 
+void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
+	if (event->state & GDK_BUTTON1_MASK) {
+		update_pixel(*image_ptr, event->x, event->y, 0, 0, 0, 255);
+	}
+}
+
 /* Load an image from a pdc file */
-static struct Image load_pdc(char *file_name) {
+struct Image load_pdc(char *file_name) {
 	int input_char;
 	int width = 0, height = 0, i = 0, j = 0, k = 0, l = 0;
 	struct Image image;
@@ -164,7 +167,7 @@ static struct Image load_pdc(char *file_name) {
 
 	NOTE: There are no seperations in the data of the image file, ie no tabs, spaces, or newlines
 */
-static void save_pdc(struct Image image, char *file_name) {
+void save_pdc(struct Image image, char *file_name) {
 	int i, j, k, l;
 	FILE *output_file;
 
@@ -194,7 +197,7 @@ static void save_pdc(struct Image image, char *file_name) {
 }
 
 /* Create and allocate memory for a filled image of the specified width and height */
-static struct Image initialize_image(int width, int height) {
+struct Image initialize_image(int width, int height) {
 	int i, j, k, l;
 	struct Image image;
 
@@ -222,10 +225,6 @@ static struct Image initialize_image(int width, int height) {
 	}
 
 	return image;
-}
-
-static void print_hello(GtkWidget *widget, gpointer data) {
-	g_print("Hello World\n");
 }
 
 /* Draw a single RGBA pixel on the canvas at position x, y */
@@ -281,7 +280,7 @@ gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
 
 }
 
-static void activate(GtkApplication *app, gpointer user_data) {
+void activate(GtkApplication *app, gpointer user_data) {
 
 	GtkWidget *window;
 	GtkWidget *grid;
@@ -301,16 +300,7 @@ static void activate(GtkApplication *app, gpointer user_data) {
 	/* Pack the container in the window */
 	gtk_container_add(GTK_CONTAINER(window), grid);
 
-	button = gtk_button_new_with_label("Button 1");
-	g_signal_connect(button, "clicked", G_CALLBACK(print_hello), NULL);
-
-	/* Place the first button in the grid cell (0, 0), and make it fill
-	* just 1 cell horizontally and vertically (ie no spanning)
-	*/
-	gtk_grid_attach(GTK_GRID(grid), button, 0, 0, 1, 1);
-
-	button = gtk_button_new_with_label("Button 2");
-	g_signal_connect(button, "clicked", G_CALLBACK(print_hello), NULL);
+	
 
 	/* Place the second button in the grid cell (1, 0), and make it fill
 	* just 1 cell horizontally and vertically (ie no spanning)
@@ -327,10 +317,13 @@ static void activate(GtkApplication *app, gpointer user_data) {
 
 	/* Create canvas as drawing_area object, and set size */
 	canvas = gtk_drawing_area_new();
+	gtk_widget_set_events(canvas, gtk_widget_get_events(canvas) | GDK_BUTTON_PRESS_MASK | GDK_POINTER_MOTION_MASK);
 	gtk_widget_set_size_request(canvas, WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
 	gtk_grid_attach(GTK_GRID(grid), canvas, 2, 2, 1, 1);
-	g_signal_connect (G_OBJECT (canvas), "draw",
-									G_CALLBACK (update_canvas), NULL);
+	g_signal_connect(G_OBJECT(canvas), "draw",
+									G_CALLBACK(update_canvas), NULL);
+
+	g_signal_connect(canvas, "motion-notify-event", G_CALLBACK(brush_mouse_motion), NULL);
 
 	/* Now that we are done packing our widgets, we show them all
 	* in one go, by calling gtk_widget_show_all() on the window.
