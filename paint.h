@@ -3,6 +3,11 @@
 *
 */
 
+struct Image {	int width;
+				int height; 
+				char ****data;
+			};
+
 int hex2d(char* hex);
 char* decimal_to_hex(int n);
 
@@ -13,7 +18,3 @@ void save_pdc(struct Image image, char *file_name);
 struct Image initialize_image(int width, int height);
 gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data);
 void activate(GtkApplication *app, gpointer user_data);
-struct Image {	int width;
-				int height; 
-				char ****data;
-			};
