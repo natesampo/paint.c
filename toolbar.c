@@ -3,47 +3,66 @@
 #define WIDTH 50
 #define HEIGHT 100
 
+static int tool = 1;
+static GdkRGBA color;
 
 
-static void selecter(GtkWidget *widget, gpointer data, int *tool){
+
+//Button functions
+static void selecter(GtkWidget *widget, gpointer datal){
 	g_print ("Selection tool\n");
-}
+	tool = 1;
 
-static void move(GtkWidget *widget, gpointer data, int *tool){
+}
+static void move(GtkWidget *widget, gpointer data){
 	g_print ("Move tool\n");
+	tool = 2;
 }
 
-static void pencil(GtkWidget *widget, gpointer data, int *tool){
+static void pencil(GtkWidget *widget, gpointer data){
 	g_print ("Pencil tool\n");
+	tool = 3;
 }
 
-static void eraser(GtkWidget *widget, gpointer data, int *tool){
+static void eraser(GtkWidget *widget, gpointer data){
 	g_print ("Eraser tool\n");
+	tool = 4;
 }
 
-static void text(GtkWidget *widget, gpointer data, int *tool){
+static void text(GtkWidget *widget, gpointer data){
 	g_print ("Text tool\n");
+	tool = 5;
 }
 
-static void bucket(GtkWidget *widget, gpointer data, int *tool){
+static void bucket(GtkWidget *widget, gpointer data){
 	g_print ("Paint bucket tool\n");
+	tool = 6;
 }
 
-static void picker(GtkWidget *widget, gpointer data, int *tool){
-	GtkWidget *colorWheel = gtk_color_chooser_dialog_new ("Colors", NULL);
-	gtk_dialog_run(colorWheel);
+static void picker(GtkWidget *widget, gpointer data){
+	GtkWidget *colorWheel;
+	colorWheel = gtk_color_chooser_dialog_new ("Colors", NULL);
+	int response = gtk_dialog_run(colorWheel);
+
+	gtk_color_chooser_get_rgba(colorWheel, &color);
+	g_print("After select:\n");
+	g_print("red %f\n", color.red*255);
+	g_print("green %f\n", color.green*255);
+	g_print("blue %f\n", color.blue*255);
 	gtk_widget_destroy(colorWheel);
+	tool = 7;
+
 }
 
 
+
+//Primary windows
 static void activate(GtkApplication *app, gpointer user_data){
 	GtkWidget *window;
 	GtkWidget *grid;
 	GtkWidget *button;
 	GtkWidget *image;
 	GdkPixbuf *pixbuf;
-
-	int *tool;
 
 	/* create a new window, and set its title */
 	window = gtk_application_window_new(app);
@@ -61,9 +80,6 @@ static void activate(GtkApplication *app, gpointer user_data){
 
 	/* Pack the container in the window */
 	gtk_container_add (GTK_CONTAINER (window), grid);
-
-
-
 
 
 
@@ -135,6 +151,11 @@ static void activate(GtkApplication *app, gpointer user_data){
 }
 
 int main(int argc, char **argv){
+	color.red = 0;
+	color.green = 0;
+	color.blue = 0;
+	color.alpha = 1;
+
 	GtkApplication *app;
 	gtk_init (&argc, &argv);
 	int status;
