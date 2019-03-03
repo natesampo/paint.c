@@ -17,6 +17,10 @@ struct Image {
 struct Image* image_ptr;
 
 
+static void print_hello(GtkWidget *widget, gpointer data) {
+	g_print("Hello World\n");
+}
+
 /* Takes a char pointer to a 2-digit hexidecimal number and returns its integer value.
  *
  * Hex value must be exactly two characters, and only contain numbers 0-9
@@ -89,6 +93,12 @@ static void update_pixel(struct Image image, int x, int y, int r, int g, int b, 
 	free(green);
 	free(blue);
 	free(alpha);
+}
+
+static void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
+	if (event->state & GDK_BUTTON1_MASK) {
+		update_pixel(*image_ptr, event->x, event->y, 0, 0, 0, 255);
+	}
 }
 
 /* Load an image from a pdc file */
@@ -225,10 +235,6 @@ static struct Image initialize_image(int width, int height) {
 	return image;
 }
 
-static void print_hello(GtkWidget *widget, gpointer data) {
-	g_print("Hello World\n");
-}
-
 /* Draw a single RGBA pixel on the canvas at position x, y */
 gboolean render_pixel(GtkWidget* canvas, cairo_t* cr, int x, int y, int r, int g, int b, int a) {
 
@@ -323,10 +329,13 @@ static void activate(GtkApplication *app, gpointer user_data) {
 
 	/* Create canvas as drawing_area object, and set size */
 	canvas = gtk_drawing_area_new();
+	gtk_widget_set_events(canvas, gtk_widget_get_events(canvas) | GDK_BUTTON_PRESS_MASK | GDK_POINTER_MOTION_MASK);
 	gtk_widget_set_size_request(canvas, WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
 	gtk_grid_attach(GTK_GRID(grid), canvas, 2, 2, 1, 1);
-	g_signal_connect (G_OBJECT (canvas), "draw",
-									G_CALLBACK (update_canvas), NULL);
+	g_signal_connect(G_OBJECT(canvas), "draw",
+									G_CALLBACK(update_canvas), NULL);
+
+	g_signal_connect(canvas, "motion-notify-event", G_CALLBACK(brush_mouse_motion), NULL);
 
 	/* Now that we are done packing our widgets, we show them all
 	* in one go, by calling gtk_widget_show_all() on the window.
