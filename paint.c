@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <gtk/gtk.h>
+#include "paint.h"
 
 #define WINDOW_WIDTH 1000
 #define WINDOW_HEIGHT 800

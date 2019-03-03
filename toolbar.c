@@ -6,8 +6,6 @@
 static int tool = 1;
 static GdkRGBA color;
 
-
-
 //Button functions
 static void selecter(GtkWidget *widget, gpointer datal){
 	g_print ("Selection tool\n");
@@ -55,7 +53,6 @@ static void picker(GtkWidget *widget, gpointer data){
 }
 
 
-
 //Primary windows
 static void activate(GtkApplication *app, gpointer user_data){
 	GtkWidget *window;
@@ -80,8 +77,6 @@ static void activate(GtkApplication *app, gpointer user_data){
 
 	/* Pack the container in the window */
 	gtk_container_add (GTK_CONTAINER (window), grid);
-
-
 
 	//TOOLS
 	//Col, row

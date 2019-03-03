@@ -7,6 +7,6 @@ toolbox.o: toolbox.c toolbox.h
 paint.o: paint.c paint.h
 	gcc -Wall -c paint.c
 
-toolbar.o: toolbar.c tollbar.h
+toolbar.o: toolbar.c toolbar.h
 	gcc -Wall -c toolbar.c
 
