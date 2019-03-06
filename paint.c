@@ -108,7 +108,7 @@ static void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
 void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
 
 	if (event->state & GDK_BUTTON1_MASK) {
-		update_pixel(*image_ptr, event->x, event->y, scurr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
+		update_pixel(*image_ptr, event->x, event->y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		update_pixel(*image_ptr, event->x+1, event->y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		update_pixel(*image_ptr, event->x, event->y+1, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		update_pixel(*image_ptr, event->x+1, event->y+1, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
@@ -271,7 +271,7 @@ gboolean render_pixel(GtkWidget* canvas, cairo_t* cr, int x, int y, int r, int g
 
 /* Draws the pixels of the image onto the window to display the image. */
 gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
-	
+
 	// Initialize variables for height, width, and color
 	guint width, height, img_width, img_height;
 	GdkRGBA color;
