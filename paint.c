@@ -18,16 +18,15 @@ GdkRGBA color;
 struct byteColor curr_color;
 
 
-
 /* Takes a char pointer to a 2-digit hexidecimal number and returns its integer value.
  *
- * Hex value must be exactly two characters, and only contain numbers 0-9
+ * Hex value must be exactly CHAR_DEPTH characters, and only contain numbers 0-9
  * and lowercase letters a-f.
  */
 int hex2d(char* hex) {
 
 	int total = 0;
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < CHAR_DEPTH; i++) {
 
 		switch (hex[i]) {
 
@@ -254,20 +253,26 @@ struct Image initialize_image(int width, int height) {
 /* Draw a single RGBA pixel on the canvas at position x, y */
 gboolean render_pixel(GtkWidget* canvas, cairo_t* cr, int x, int y, int r, int g, int b, int a) {
 
+	// Convert color values from [0, 255] to [0, 1]
 	GdkRGBA color;
 	color.red = r/255.0;
 	color.green = g/255.0;
 	color.blue = b/255.0;
 	color.alpha = a/255.0;
+
+	// Draw a one-pixel rectangle onto the screen
 	gdk_cairo_set_source_rgba (cr, &color);
 	cairo_rectangle(cr, x, y, 1, 1);
 	cairo_fill(cr);
-
 	return FALSE;
+
 
 }
 
+/* Draws the pixels of the image onto the window to display the image. */
 gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
+
+	printf("Canvas update.\n");
 
 	// Initialize variables for height, width, and color
 	guint width, height, img_width, img_height;
@@ -285,6 +290,7 @@ gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
 	img_width = (*image_ptr).width;
 	img_height = (*image_ptr).height;
 
+	// Draw each pixel, iterating over image size
 	for (int i = 0; i < width; i++) {
 		for (int j = 0; j < height; j++) {
 			int c[COLOR_CHANNELS];
