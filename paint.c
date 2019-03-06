@@ -107,10 +107,9 @@ static void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
 }
 
 void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
-	printf("%ld\n", time(0));
 
 	if (event->state & GDK_BUTTON1_MASK) {
-		update_pixel(*image_ptr, event->x, event->y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
+		update_pixel(*image_ptr, event->x, event->y, scurr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		update_pixel(*image_ptr, event->x+1, event->y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		update_pixel(*image_ptr, event->x, event->y+1, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		update_pixel(*image_ptr, event->x+1, event->y+1, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);

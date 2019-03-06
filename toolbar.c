@@ -40,23 +40,11 @@ void picker(GtkWidget *widget, gpointer data){
 	int response = gtk_dialog_run(colorWheel);
 
 	gtk_color_chooser_get_rgba(colorWheel, &color);
-	curr_color.red = color.red*255;
-	curr_color.green= color.green*255;
-	curr_color.blue= color.blue*255;
-	curr_color.alpha= color.alpha*255;
+	curr_color.red = (int)(color.red*255);
+	curr_color.green= (int)(color.green*255);
+	curr_color.blue= (int)(color.blue*255);
+	curr_color.alpha= (int)(color.alpha*255);
 	gtk_widget_destroy(colorWheel);
-
-	g_print("red %f\n", color.red);
-	g_print("green %f\n", color.green);
-	
-	g_print("blue %f\n", color.blue);
-	g_print("alpha %f\n", color.alpha);
-
-	g_print("After select:\n");
-	g_print("red %f\n", curr_color.red);
-	g_print("green %f\n", curr_color.green);
-	g_print("blue %f\n", curr_color.blue);
-	g_print("alpha %f\n", curr_color.alpha);
 
 	tool = 7;
 

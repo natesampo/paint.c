@@ -4,10 +4,10 @@
 */
 
 struct byteColor{
-	double red;
-	double green;
-	double blue;
-	double alpha;
+	int red;
+	int green;
+	int blue;
+	int alpha;
 };
 
 extern GdkRGBA color;
