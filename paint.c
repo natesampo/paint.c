@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
 #include <time.h>
+#include <math.h>
 #include "paint.h"
 #include "toolbar.h"
 
@@ -92,11 +93,16 @@ void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) 
 	free(alpha);
 }
 
-static void draw_line(int x1, int y1, int x2, int y2) {
+double get_distance(int x1, int y1, int x2, int y2) {
+	return sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1));
+}
+
+static void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
+	double distance = get_distance(x1, y1, x2, y2);
 	int i;
 
-	for(i=0; i<abs(x1-x2); i++) {
-		//update_pixel(*image_ptr, int(x1 - float(i)/float(x1-x2)));
+	for(i=0; i<distance; i++) {
+		update_pixel(image, x1 - (int) ((x1 - x2)*(i/distance)), y1 - (int) ((y1 - y2)*(i/distance)), 0, 0, 0, 255);
 	}
 }
 
@@ -108,6 +114,7 @@ void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 		update_pixel(*image_ptr, event->x+1, event->y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		update_pixel(*image_ptr, event->x, event->y+1, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		update_pixel(*image_ptr, event->x+1, event->y+1, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
+
 		//gtk_widget_queue_draw_area(widget, event->x, event->y, 1, 1);
 	}
 }

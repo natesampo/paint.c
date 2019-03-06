@@ -1,5 +1,5 @@
 paint: paint.o toolbar.o
-	gcc -Wall paint.o toolbar.o -o paint `pkg-config --cflags --libs gtk+-3.0`
+	gcc -Wall paint.o toolbar.o -o paint `pkg-config --cflags --libs gtk+-3.0` -lm
 
 
 # paint: toolbox.o paint.o toolbar.o
