@@ -271,9 +271,7 @@ gboolean render_pixel(GtkWidget* canvas, cairo_t* cr, int x, int y, int r, int g
 
 /* Draws the pixels of the image onto the window to display the image. */
 gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
-
-	printf("Canvas update.\n");
-
+	
 	// Initialize variables for height, width, and color
 	guint width, height, img_width, img_height;
 	GdkRGBA color;
