@@ -13,10 +13,9 @@
 struct Image* image_ptr;
 
 
-
 /* Takes a char pointer to a 2-digit hexidecimal number and returns its integer value.
  *
- * Hex value must be exactly two characters, and only contain numbers 0-9
+ * Hex value must be exactly CHAR_DEPTH characters, and only contain numbers 0-9
  * and lowercase letters a-f.
  */
 int hex2d(char* hex) {
@@ -256,13 +255,15 @@ gboolean render_pixel(GtkWidget* canvas, cairo_t* cr, int x, int y, int r, int g
 	gdk_cairo_set_source_rgba (cr, &color);
 	cairo_rectangle(cr, x, y, 1, 1);
 	cairo_fill(cr);
-
 	return FALSE;
+
 
 }
 
 /* Draws the pixels of the image onto the window to display the image. */
 gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
+
+	printf("Canvas update.\n");
 
 	// Initialize variables for height, width, and color
 	guint width, height, img_width, img_height;
