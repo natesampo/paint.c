@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
 #include <time.h>
+#include <math.h>
 #include "paint.h"
+#include "toolbar.h"
 
 #define WINDOW_WIDTH 1000
 #define WINDOW_HEIGHT 800
@@ -11,6 +13,9 @@
 
 
 struct Image* image_ptr;
+int tool;
+GdkRGBA color;
+struct byteColor curr_color;
 
 
 /* Takes a char pointer to a 2-digit hexidecimal number and returns its integer value.
@@ -87,22 +92,27 @@ void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) 
 	free(alpha);
 }
 
-static void draw_line(int x1, int y1, int x2, int y2) {
+double get_distance(int x1, int y1, int x2, int y2) {
+	return sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1));
+}
+
+static void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
+	double distance = get_distance(x1, y1, x2, y2);
 	int i;
 
-	for(i=0; i<abs(x1-x2); i++) {
-		//update_pixel(*image_ptr, int(x1 - float(i)/float(x1-x2)));
+	for(i=0; i<distance; i++) {
+		update_pixel(image, x1 - (int) ((x1 - x2)*(i/distance)), y1 - (int) ((y1 - y2)*(i/distance)), 0, 0, 0, 255);
 	}
 }
 
 void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
-	printf("%ld\n", time(0));
 
 	if (event->state & GDK_BUTTON1_MASK) {
-		update_pixel(*image_ptr, event->x, event->y, 0, 0, 0, 255);
-		update_pixel(*image_ptr, event->x+1, event->y, 0, 0, 0, 255);
-		update_pixel(*image_ptr, event->x, event->y+1, 0, 0, 0, 255);
-		update_pixel(*image_ptr, event->x+1, event->y+1, 0, 0, 0, 255);
+		update_pixel(*image_ptr, event->x, event->y, scurr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
+		update_pixel(*image_ptr, event->x+1, event->y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
+		update_pixel(*image_ptr, event->x, event->y+1, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
+		update_pixel(*image_ptr, event->x+1, event->y+1, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
+
 		//gtk_widget_queue_draw_area(widget, event->x, event->y, 1, 1);
 	}
 }
@@ -298,11 +308,16 @@ gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
 
 void activate(GtkApplication *app, gpointer user_data) {
 
+	GtkWidget *windowTool;
+	GtkWidget *image;
+	GdkPixbuf *pixbuf;
 	GtkWidget *window;
 	GtkWidget *grid;
 	GtkWidget *button;
 	GtkWidget *canvas;
 	GtkWidget *canvas_grid;
+
+
 
 	/* create a new window, and set its title */
 	window = gtk_application_window_new(app);
@@ -334,26 +349,99 @@ void activate(GtkApplication *app, gpointer user_data) {
 
 	g_signal_connect(canvas, "motion-notify-event", G_CALLBACK(brush_mouse_motion), NULL);
 
-	/* Now that we are done packing our widgets, we show them all
-	* in one go, by calling gtk_widget_show_all() on the window.
-	* This call recursively calls gtk_widget_show() on all widgets
-	* that are contained in the window, directly or indirectly.
-	*/
 	gtk_widget_show_all(window);
+
+
+	//TOOLBAR Window
+	/* create a new windowTool, and set its title */
+	windowTool = gtk_application_window_new(app);
+	gtk_window_set_title(GTK_WINDOW(windowTool), "windowTool");
+
+	gtk_window_set_resizable(GTK_WINDOW(windowTool), FALSE);
+	
+	gtk_container_set_border_width(GTK_CONTAINER (windowTool), 10);
+
+	/* Here we construct the container that is going pack our buttons */
+	grid = gtk_grid_new();
+	gtk_grid_set_row_homogeneous(grid, 1);
+	gtk_grid_set_column_homogeneous(grid, 1);
+
+	/* Pack the container in the windowTool */
+	gtk_container_add (GTK_CONTAINER (windowTool), grid);
+
+	//TOOLS
+	//Col, row
+	//Selection Tool
+	button = gtk_button_new();
+	g_signal_connect(button, "clicked", G_CALLBACK(selecter), NULL);
+	gtk_grid_attach (GTK_GRID (grid), button, 0, 0, 1, 1);
+	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/point.png", 50, 50, 0, NULL);
+	image = gtk_image_new_from_pixbuf(pixbuf);
+	gtk_button_set_image (GTK_BUTTON (button), image);
+
+	//Move Tool
+	button = gtk_button_new();
+	g_signal_connect(button, "clicked", G_CALLBACK(move), NULL);
+	gtk_grid_attach (GTK_GRID (grid), button, 1, 0, 1, 1);
+	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/point.png", 50, 50, 0, NULL);
+	image = gtk_image_new_from_pixbuf(pixbuf);
+	gtk_button_set_image (GTK_BUTTON (button), image);
+
+	//Pencil Tool
+	button = gtk_button_new();
+	g_signal_connect(button, "clicked", G_CALLBACK(pencil), NULL);
+	gtk_grid_attach (GTK_GRID (grid), button, 0, 1, 1, 1);
+	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/pencil.png", 50, 50, 0, NULL);
+	image = gtk_image_new_from_pixbuf(pixbuf);
+	gtk_button_set_image (GTK_BUTTON (button), image);
+
+	//Eraser Picker Tool
+	button = gtk_button_new();
+	g_signal_connect(button, "clicked", G_CALLBACK(eraser), NULL);
+	gtk_grid_attach (GTK_GRID (grid), button, 1, 1, 1, 1);
+	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/eraser.png", 50, 50, 0, NULL);
+	image = gtk_image_new_from_pixbuf(pixbuf);
+	gtk_button_set_image (GTK_BUTTON (button), image);
+
+	//Text tool
+	button = gtk_button_new();
+	g_signal_connect(button, "clicked", G_CALLBACK(text), NULL);
+	gtk_grid_attach (GTK_GRID (grid), button, 0, 2, 1, 1);
+	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/text.png", 50, 50, 0, NULL);
+	image = gtk_image_new_from_pixbuf(pixbuf);
+	gtk_button_set_image (GTK_BUTTON (button), image);
+
+	//Paint Bucket Tool
+	button = gtk_button_new();
+	g_signal_connect(button, "clicked", G_CALLBACK(bucket), NULL);
+	gtk_grid_attach (GTK_GRID (grid), button, 1, 2, 1, 1);
+	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/bucket.png", 50, 50, 0, NULL);
+	image = gtk_image_new_from_pixbuf(pixbuf);
+	gtk_button_set_image (GTK_BUTTON (button), image);
+
+	//Color Picker Tool
+	button = gtk_button_new();
+	g_signal_connect(button, "clicked", G_CALLBACK(picker), NULL);
+	gtk_grid_attach (GTK_GRID (grid), button, 0, 3, 1, 1);
+	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/drop.png", 50, 50, 0, NULL);
+	image = gtk_image_new_from_pixbuf(pixbuf);
+	gtk_button_set_image (GTK_BUTTON (button), image);
+
+	gtk_widget_show_all(windowTool);
 }
 
 int main(int argc, char **argv) {
-
-	GtkApplication *app;
-
 	int status;
+	int status2;
 	struct Image image;
 	image_ptr = &image;
 
 	image = initialize_image(500, 500);
 
+	GtkApplication *app;
 	app = gtk_application_new("org.gtk.example", G_APPLICATION_FLAGS_NONE);
 	g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
+	
 	status = g_application_run(G_APPLICATION (app), argc, argv);
 	g_object_unref(app);
 
