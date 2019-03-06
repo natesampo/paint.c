@@ -108,7 +108,6 @@ void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 		update_pixel(*image_ptr, event->x+1, event->y, 0, 0, 0, 255);
 		update_pixel(*image_ptr, event->x, event->y+1, 0, 0, 0, 255);
 		update_pixel(*image_ptr, event->x+1, event->y+1, 0, 0, 0, 255);
-		draw_line(*image_ptr, event->x, event->y, 5, 5);
 		//gtk_widget_queue_draw_area(widget, event->x, event->y, 1, 1);
 	}
 }
