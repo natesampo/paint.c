@@ -1,0 +1,8 @@
+# Ignore compiled paint file.
+paint
+
+# Ignore object files created by the make file
+*.o
+
+# Ignore pdc image files
+*.pdc
