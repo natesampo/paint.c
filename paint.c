@@ -92,14 +92,12 @@ static void draw_line(int x1, int y1, int x2, int y2) {
 	int i;
 
 	for(i=0; i<abs(x1-x2); i++) {
-		//update_pixel(*image_ptr, int(x1 - float(i)/float(x1-x2)));
+		update_pixel(*image_ptr, (int) (x1 - (float) i/ (float) x1-x2), (int) (y1 - (float) i/ (float) y1-y2), 0, 0, 0, 255);
 	}
 }
 
 void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
-	printf("%ld\n", time(0));
-
-	if (event->state & GDK_BUTTON1_MASK) {
+	if ((event->state & GDK_BUTTON1_MASK) && (event->x > 0 && event->x < image_ptr->width) && (event->y > 0 && event->y < image_ptr->height)) {
 		update_pixel(*image_ptr, event->x, event->y, 0, 0, 0, 255);
 		update_pixel(*image_ptr, event->x+1, event->y, 0, 0, 0, 255);
 		update_pixel(*image_ptr, event->x, event->y+1, 0, 0, 0, 255);
