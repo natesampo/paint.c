@@ -102,7 +102,7 @@ static void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
 	int i;
 
 	for(i=0; i<distance; i++) {
-		update_pixel(image, x1 - (int) ((x1 - x2)*(i/distance)), y1 - (int) ((y1 - y2)*(i/distance)), 0, 0, 0, 255);
+		update_pixel(image, x1 - (int) ((x1 - x2)*(i/distance)), y1 - (int) ((y1 - y2)*(i/distance)), curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 	}
 }
 
@@ -114,7 +114,6 @@ void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 		update_pixel(*image_ptr, event->x+1, event->y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		update_pixel(*image_ptr, event->x, event->y+1, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		update_pixel(*image_ptr, event->x+1, event->y+1, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
-
 		//gtk_widget_queue_draw_area(widget, event->x, event->y, 1, 1);
 	}
 }
