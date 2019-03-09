@@ -20,13 +20,13 @@ struct byteColor curr_color;
 
 /* Takes a char pointer to a 2-digit hexidecimal number and returns its integer value.
  *
- * Hex value must be exactly two characters, and only contain numbers 0-9
+ * Hex value must be exactly CHAR_DEPTH characters, and only contain numbers 0-9
  * and lowercase letters a-f.
  */
 int hex2d(char* hex) {
 
 	int total = 0;
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < CHAR_DEPTH; i++) {
 
 		switch (hex[i]) {
 
@@ -101,7 +101,7 @@ static void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
 	int i;
 
 	for(i=0; i<distance; i++) {
-		update_pixel(image, x1 - (int) ((x1 - x2)*(i/distance)), y1 - (int) ((y1 - y2)*(i/distance)), 0, 0, 0, 255);
+		update_pixel(image, x1 - (int) ((x1 - x2)*(i/distance)), y1 - (int) ((y1 - y2)*(i/distance)), curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 	}
 }
 
@@ -112,7 +112,6 @@ void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 		update_pixel(*image_ptr, event->x+1, event->y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		update_pixel(*image_ptr, event->x, event->y+1, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		update_pixel(*image_ptr, event->x+1, event->y+1, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
-
 		//gtk_widget_queue_draw_area(widget, event->x, event->y, 1, 1);
 	}
 }
@@ -254,19 +253,23 @@ struct Image initialize_image(int width, int height) {
 /* Draw a single RGBA pixel on the canvas at position x, y */
 gboolean render_pixel(GtkWidget* canvas, cairo_t* cr, int x, int y, int r, int g, int b, int a) {
 
+	// Convert color values from [0, 255] to [0, 1]
 	GdkRGBA color;
 	color.red = r/255.0;
 	color.green = g/255.0;
 	color.blue = b/255.0;
 	color.alpha = a/255.0;
+
+	// Draw a one-pixel rectangle onto the screen
 	gdk_cairo_set_source_rgba (cr, &color);
 	cairo_rectangle(cr, x, y, 1, 1);
 	cairo_fill(cr);
-
 	return FALSE;
+
 
 }
 
+/* Draws the pixels of the image onto the window to display the image. */
 gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
 
 	// Initialize variables for height, width, and color
@@ -285,6 +288,7 @@ gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
 	img_width = (*image_ptr).width;
 	img_height = (*image_ptr).height;
 
+	// Draw each pixel, iterating over image size
 	for (int i = 0; i < width; i++) {
 		for (int j = 0; j < height; j++) {
 			int c[COLOR_CHANNELS];
@@ -424,6 +428,14 @@ void activate(GtkApplication *app, gpointer user_data) {
 	g_signal_connect(button, "clicked", G_CALLBACK(picker), NULL);
 	gtk_grid_attach (GTK_GRID (grid), button, 0, 3, 1, 1);
 	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/drop.png", 50, 50, 0, NULL);
+	image = gtk_image_new_from_pixbuf(pixbuf);
+	gtk_button_set_image (GTK_BUTTON (button), image);
+
+	//Line Tool
+	button = gtk_button_new();
+	g_signal_connect(button, "clicked", G_CALLBACK(picker), NULL);
+	gtk_grid_attach (GTK_GRID (grid), button, 1, 3, 1, 1);
+	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/line.png", 50, 50, 0, NULL);
 	image = gtk_image_new_from_pixbuf(pixbuf);
 	gtk_button_set_image (GTK_BUTTON (button), image);
 
