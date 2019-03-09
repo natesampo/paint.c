@@ -18,7 +18,6 @@ GdkRGBA color;
 struct byteColor curr_color;
 
 
-
 /* Takes a char pointer to a 2-digit hexidecimal number and returns its integer value.
  *
  * Hex value must be exactly two characters, and only contain numbers 0-9
@@ -109,7 +108,7 @@ static void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
 void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
 
 	if (event->state & GDK_BUTTON1_MASK) {
-		update_pixel(*image_ptr, event->x, event->y, scurr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
+		update_pixel(*image_ptr, event->x, event->y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		update_pixel(*image_ptr, event->x+1, event->y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		update_pixel(*image_ptr, event->x, event->y+1, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		update_pixel(*image_ptr, event->x+1, event->y+1, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
@@ -300,13 +299,17 @@ gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
 
 }
 
+void kill_app(GtkApplication *app, gpointer user_data){
+	g_application_quit (app);
+}
+
 void activate(GtkApplication *app, gpointer user_data) {
 
 	GtkWidget *windowTool;
 	GtkWidget *image;
 	GdkPixbuf *pixbuf;
 	GtkWidget *window;
-	GtkWidget *grid;
+	GtkGrid *grid;
 	GtkWidget *button;
 	GtkWidget *canvas;
 	GtkWidget *canvas_grid;
@@ -326,7 +329,7 @@ void activate(GtkApplication *app, gpointer user_data) {
 	gtk_container_add(GTK_CONTAINER(window), grid);
 
 	button = gtk_button_new_with_label("Quit");
-	g_signal_connect_swapped(button, "clicked", G_CALLBACK(gtk_widget_destroy), window);
+	g_signal_connect_swapped(button, "clicked", G_CALLBACK(kill_app), window);
 
 	/* Place the Quit button in the grid cell (0, 1), and make it
 	* span 2 columns.
@@ -344,6 +347,9 @@ void activate(GtkApplication *app, gpointer user_data) {
 	g_signal_connect(canvas, "motion-notify-event", G_CALLBACK(brush_mouse_motion), NULL);
 
 	gtk_widget_show_all(window);
+
+
+
 
 
 	//TOOLBAR Window
