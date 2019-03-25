@@ -13,6 +13,8 @@ struct byteColor{
 extern GdkRGBA color;
 extern struct byteColor curr_color;
 extern int tool;
+extern int lastX;
+extern int lastY;
 
 void controller(GtkApplication *app, gpointer user_data);
 void selecter(GtkWidget *widget, gpointer datal);

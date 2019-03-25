@@ -21,7 +21,10 @@ void pencil(GtkWidget *widget, gpointer data){
 	if (tool > 0) {
 		g_signal_handler_disconnect(canvas, tool);
 	}
-	
+
+	lastX = -1;
+	lastY = -1;
+
 	tool = g_signal_connect(canvas, "motion-notify-event", G_CALLBACK(brush_mouse_motion), NULL);
 	printf("%d\n", tool);
 }
