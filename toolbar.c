@@ -7,8 +7,8 @@
 void selecter(GtkWidget *widget, gpointer datal){
 	g_print ("Selection tool\n");
 	tool = 1;
-
 }
+
 void move(GtkWidget *widget, gpointer data){
 	g_print ("Move tool\n");
 	tool = 2;
@@ -16,7 +16,14 @@ void move(GtkWidget *widget, gpointer data){
 
 void pencil(GtkWidget *widget, gpointer data){
 	g_print ("Pencil tool\n");
-	tool = 3;
+	GtkWidget* canvas = data;
+
+	if (tool > 0) {
+		g_signal_handler_disconnect(canvas, tool);
+	}
+	
+	tool = g_signal_connect(canvas, "motion-notify-event", G_CALLBACK(brush_mouse_motion), NULL);
+	printf("%d\n", tool);
 }
 
 void eraser(GtkWidget *widget, gpointer data){
@@ -37,7 +44,7 @@ void bucket(GtkWidget *widget, gpointer data){
 void picker(GtkWidget *widget, gpointer data){
 	GtkWidget *colorWheel;
 	colorWheel = gtk_color_chooser_dialog_new ("Colors", NULL);
-	int response = gtk_dialog_run(colorWheel);
+	gtk_dialog_run(colorWheel);
 
 	gtk_color_chooser_get_rgba(colorWheel, &color);
 	curr_color.red = (int)(color.red*255);

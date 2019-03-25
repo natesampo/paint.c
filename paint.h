@@ -18,3 +18,4 @@ void save_pdc(struct Image image, char *file_name);
 struct Image initialize_image(int width, int height);
 gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data);
 void activate(GtkApplication *app, gpointer user_data);
+void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data);

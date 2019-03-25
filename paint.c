@@ -13,7 +13,7 @@
 
 
 struct Image* image_ptr;
-int tool;
+int tool = 0;
 GdkRGBA color;
 struct byteColor curr_color;
 
@@ -273,8 +273,7 @@ gboolean render_pixel(GtkWidget* canvas, cairo_t* cr, int x, int y, int r, int g
 gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
 
 	// Initialize variables for height, width, and color
-	guint width, height, img_width, img_height;
-	GdkRGBA color;
+	guint width, height;
 	GtkStyleContext* context;
 
 	// Read context, width, and height from canvas struct
@@ -284,9 +283,6 @@ gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
 
 	// Draw the weird, grayish background
 	gtk_render_background(context, cr, 0, 0, width, height);
-
-	img_width = (*image_ptr).width;
-	img_height = (*image_ptr).height;
 
 	// Draw each pixel, iterating over image size
 	for (int i = 0; i < width; i++) {
@@ -348,13 +344,8 @@ void activate(GtkApplication *app, gpointer user_data) {
 	g_signal_connect(G_OBJECT(canvas), "draw",
 									G_CALLBACK(update_canvas), NULL);
 
-	g_signal_connect(canvas, "motion-notify-event", G_CALLBACK(brush_mouse_motion), NULL);
 
 	gtk_widget_show_all(window);
-
-
-
-
 
 	//TOOLBAR Window
 	/* create a new windowTool, and set its title */
@@ -393,7 +384,7 @@ void activate(GtkApplication *app, gpointer user_data) {
 
 	//Pencil Tool
 	button = gtk_button_new();
-	g_signal_connect(button, "clicked", G_CALLBACK(pencil), NULL);
+	g_signal_connect(button, "clicked", G_CALLBACK(pencil), canvas);
 	gtk_grid_attach (GTK_GRID (grid), button, 0, 1, 1, 1);
 	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/pencil.png", 50, 50, 0, NULL);
 	image = gtk_image_new_from_pixbuf(pixbuf);
