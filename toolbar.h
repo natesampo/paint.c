@@ -24,3 +24,4 @@ void eraser(GtkWidget *widget, gpointer data);
 void text(GtkWidget *widget, gpointer data);
 void bucket(GtkWidget *widget, gpointer data);
 void picker(GtkWidget *widget, gpointer data);
+void line(GtkWidget *widget, gpointer data);
