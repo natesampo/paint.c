@@ -6,12 +6,10 @@
 //Button functions
 void selecter(GtkWidget *widget, gpointer datal){
 	g_print ("Selection tool\n");
-	tool = 1;
 }
 
 void move(GtkWidget *widget, gpointer data){
 	g_print ("Move tool\n");
-	tool = 2;
 }
 
 void pencil(GtkWidget *widget, gpointer data){
@@ -31,17 +29,14 @@ void pencil(GtkWidget *widget, gpointer data){
 
 void eraser(GtkWidget *widget, gpointer data){
 	g_print ("Eraser tool\n");
-	tool = 4;
 }
 
 void text(GtkWidget *widget, gpointer data){
 	g_print ("Text tool\n");
-	tool = 5;
 }
 
 void bucket(GtkWidget *widget, gpointer data){
 	g_print ("Paint bucket tool\n");
-	tool = 6;
 }
 
 void picker(GtkWidget *widget, gpointer data){
@@ -51,12 +46,12 @@ void picker(GtkWidget *widget, gpointer data){
 
 	gtk_color_chooser_get_rgba(colorWheel, &color);
 	curr_color.red = (int)(color.red*255);
-	curr_color.green= (int)(color.green*255);
-	curr_color.blue= (int)(color.blue*255);
-	curr_color.alpha= (int)(color.alpha*255);
+	curr_color.green = (int)(color.green*255);
+	curr_color.blue = (int)(color.blue*255);
+	curr_color.alpha = (int)(color.alpha*255);
 	gtk_widget_destroy(colorWheel);
-
-	tool = 7;
-
 }
 
+void line(GtkWidget *widget, gpointer data){
+	g_print ("Line tool\n");
+}

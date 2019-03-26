@@ -111,9 +111,19 @@ static void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
 	}
 }
 
-void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
+void line_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
 
 	if (event->state & GDK_BUTTON1_MASK) {
+		draw_line(*image_ptr, lastX, lastY, event->x, event->y);
+	}
+
+	lastX = event->x;
+	lastY = event->y;
+}
+
+void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
+
+	if ((event->state & GDK_BUTTON1_MASK) && (event->x > 0 && event->x < image_ptr->width) && (event->y > 0 && event->y < image_ptr->height)) {
 		draw_line(*image_ptr, lastX, lastY, event->x, event->y);
 		//update_pixel(*image_ptr, event->x, event->y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		//update_pixel(*image_ptr, event->x+1, event->y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
@@ -444,7 +454,7 @@ void activate(GtkApplication *app, gpointer user_data) {
 
 	//Line Tool
 	button = gtk_button_new();
-	g_signal_connect(button, "clicked", G_CALLBACK(picker), NULL);
+	g_signal_connect(button, "clicked", G_CALLBACK(line), NULL);
 	gtk_grid_attach (GTK_GRID (grid), button, 1, 3, 1, 1);
 	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/line.png", 50, 50, 0, NULL);
 	image = gtk_image_new_from_pixbuf(pixbuf);
