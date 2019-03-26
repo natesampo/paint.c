@@ -107,7 +107,9 @@ static void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
 	int i;
 
 	for(i=0; i<distance; i++) {
-		update_pixel(image, x1 - (int) ((x1 - x2)*(i/distance)), y1 - (int) ((y1 - y2)*(i/distance)), curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
+		update_pixel(image, x1 - (int) ((x1 - x2)*(i/distance)),
+			y1 - (int) ((y1 - y2)*(i/distance)),
+			curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 	}
 }
 
@@ -125,21 +127,19 @@ void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 
 	if ((event->state & GDK_BUTTON1_MASK) && (event->x > 0 && event->x < image_ptr->width) && (event->y > 0 && event->y < image_ptr->height)) {
 		draw_line(*image_ptr, lastX, lastY, event->x, event->y);
-		//update_pixel(*image_ptr, event->x, event->y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
-		//update_pixel(*image_ptr, event->x+1, event->y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
-		//update_pixel(*image_ptr, event->x, event->y+1, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
-		//update_pixel(*image_ptr, event->x+1, event->y+1, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		int low_x = MIN(event -> x, lastX);
 		int low_y = MIN(event -> y, lastY);
 		int high_x = MAX(event -> x, lastX);
 		int high_y = MAX(event -> y, lastY);
 		int width = MAX(high_x - low_x, 1);
 		int height = MAX(high_y - low_y, 1);
-		int b = 2;	//	Border around draw area for buffer.
-		gtk_widget_queue_draw_area(widget, low_x - b,
-				low_y - b,
-				width + 2*b,
-				height + 2*b);
+		int b = 1;	//	Border around draw area for buffer.
+		gtk_widget_queue_draw_area(widget,
+				MAX(low_x - b, 0),
+				MAX(low_y - b, 0),
+				MIN(width + 2*b, image_ptr -> width - 1),
+				MIN(height + 2*b, image_ptr -> height - 1));
+
 	}
 
 	lastX = event->x;
