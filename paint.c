@@ -20,6 +20,9 @@ struct byteColor curr_color;
 int lastX = -1;
 int lastY = -1;
 
+#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+#define MAX(X, Y) (((Y) < (X)) ? (X) : (Y))
+
 
 /* Takes a char pointer to a 2-digit hexidecimal number and returns its integer value.
  *
@@ -116,7 +119,17 @@ void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 		//update_pixel(*image_ptr, event->x+1, event->y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		//update_pixel(*image_ptr, event->x, event->y+1, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 		//update_pixel(*image_ptr, event->x+1, event->y+1, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
-		//gtk_widget_queue_draw_area(widget, event->x, event->y, 1, 1);
+		int low_x = MIN(event -> x, lastX);
+		int low_y = MIN(event -> y, lastY);
+		int high_x = MAX(event -> x, lastX);
+		int high_y = MAX(event -> y, lastY);
+		int width = MAX(high_x - low_x, 1);
+		int height = MAX(high_y - low_y, 1);
+		int b = 2;	//	Border around draw area for buffer.
+		gtk_widget_queue_draw_area(widget, low_x - b,
+				low_y - b,
+				width + 2*b,
+				height + 2*b);
 	}
 
 	lastX = event->x;
@@ -360,7 +373,7 @@ void activate(GtkApplication *app, gpointer user_data) {
 	gtk_window_set_title(GTK_WINDOW(windowTool), "windowTool");
 
 	gtk_window_set_resizable(GTK_WINDOW(windowTool), FALSE);
-	
+
 	gtk_container_set_border_width(GTK_CONTAINER (windowTool), 10);
 
 	/* Here we construct the container that is going pack our buttons */
@@ -451,7 +464,7 @@ int main(int argc, char **argv) {
 	GtkApplication *app;
 	app = gtk_application_new("org.gtk.example", G_APPLICATION_FLAGS_NONE);
 	g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
-	
+
 	status = g_application_run(G_APPLICATION (app), argc, argv);
 	g_object_unref(app);
 
