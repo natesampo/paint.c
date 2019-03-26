@@ -19,6 +19,7 @@ struct byteColor curr_color;
 
 int lastX = -1;
 int lastY = -1;
+int brush_size = 6;
 
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define MAX(X, Y) (((Y) < (X)) ? (X) : (Y))
@@ -105,12 +106,39 @@ double get_distance(int x1, int y1, int x2, int y2) {
 static void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
 	double distance = get_distance(x1, y1, x2, y2);
 	int i;
+	int cx;
+	int cy;
 
 	for(i=0; i<distance; i++) {
-		update_pixel(image, x1 - (int) ((x1 - x2)*(i/distance)),
-			y1 - (int) ((y1 - y2)*(i/distance)),
-			curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
+		cx = x1 - (int) ((x1 - x2)*(i/distance));
+		cy = y1 - (int) ((y1 - y2)*(i/distance));
+		draw_circle(image, cx, cy, brush_size);
 	}
+}
+
+/* Draws a circle to the image structure at position (x, y) of diameter d.
+	 Uses the color defined by curr_color.
+	 TODO add hardness and antialiasing
+*/
+void draw_circle(struct Image image, int x, int y, int d) {
+
+	int min_x = x - d/2;
+	int min_y = y - d/2;
+	int max_x = x + d/2;
+	int max_y = y + d/2;
+	int dist;
+
+	for (int this_x = min_x; this_x <= max_x; this_x++) {
+		for (int this_y = min_y; this_y <= max_y; this_y++) {
+
+			dist = pow(this_x - x, 2) + pow(this_y - y, 2);
+			if (dist <= pow(d, 2)/4) {
+				update_pixel(image, this_x, this_y,
+					curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
+			}
+		}
+	}
+
 }
 
 void line_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
@@ -133,7 +161,7 @@ void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 		int high_y = MAX(event -> y, lastY);
 		int width = MAX(high_x - low_x, 1);
 		int height = MAX(high_y - low_y, 1);
-		int b = 1;	//	Border around draw area for buffer.
+		int b = brush_size/2;	//	Border around draw area for buffer.
 		gtk_widget_queue_draw_area(widget,
 				MAX(low_x - b, 0),
 				MAX(low_y - b, 0),
