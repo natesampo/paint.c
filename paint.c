@@ -7,8 +7,6 @@
 #include "paint.h"
 #include "toolbar.h"
 
-#define WINDOW_WIDTH 1000
-#define WINDOW_HEIGHT 800
 #define COLOR_CHANNELS 4
 #define CHAR_DEPTH 2
 
@@ -58,6 +56,7 @@ int hex_to_decimal(char* hex) {
 
 		}
 	}
+
 	return total;
 }
 
@@ -92,8 +91,8 @@ int check_bounds(struct Image image, int x, int y) {
 	}
 }
 
-/* 
-* Updates one pixel in the image with the values passed 
+/*
+* Updates one pixel in the image with the values passed
 
 * image - image structure to perform updates on
 * x - x location of pixel in image
@@ -139,7 +138,7 @@ void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) 
 
 /*
 * Return distance between two pixels
-* 
+*
 * image - image structure to perform updates on
 * x1 - x coordinate of the first point
 * y1 - y coordinate of the first point
@@ -374,7 +373,7 @@ void save_pdc(struct Image image, char *file_name) {
 }
 
 /*
-* Create and allocate memory for a filled image of the specified width and height 
+* Create and allocate memory for a filled image of the specified width and height
 *
 * width - width of image in pixels
 * height - height of image in pixels
@@ -409,8 +408,8 @@ struct Image initialize_image(int width, int height) {
 	return image;
 }
 
-/* 
-* Draw a single RGBA pixel on the canvas at position x, y 
+/*
+* Draw a single RGBA pixel on the canvas at position x, y
 *
 *
 * GTK cairo array to store color data
@@ -439,8 +438,8 @@ gboolean render_pixel(GtkWidget* canvas, cairo_t* cr, int x, int y, int r, int g
 
 }
 
-/* 
-* Draws the pixels of the image onto the window to display the image. 
+/*
+* Draws the pixels of the image onto the window to display the image.
 *
 * GTK cairo array to store color data
 * data - values passed as gpointers, standard GTK function parameter
@@ -562,15 +561,17 @@ void activate(GtkApplication *app, gpointer user_data) {
 	GdkPixbuf *pixbuf;
 	GtkWidget *window;
 	GtkGrid *grid;
-	GtkWidget *button;
+	GtkWidget *button, *load_button, *save_button;
 	GtkWidget *canvas_grid;
 	GtkWidget *scale;
 	GtkAdjustment *adjustment;
 
 	/* create a new window, and set its title */
 	window = gtk_application_window_new(app);
-	gtk_window_set_title(GTK_WINDOW(window), "Window");
-	gtk_window_set_default_size(GTK_WINDOW(window), WINDOW_WIDTH, WINDOW_HEIGHT);
+	gtk_window_set_title(GTK_WINDOW(window), "Canvas");
+	gtk_window_set_default_size(GTK_WINDOW(window),
+		image_ptr -> width,
+		image_ptr -> height);
 	gtk_container_set_border_width(GTK_CONTAINER(window), 10);
 
 	/* Here we construct the container that is going pack our buttons */
@@ -579,18 +580,23 @@ void activate(GtkApplication *app, gpointer user_data) {
 	/* Pack the container in the window */
 	gtk_container_add(GTK_CONTAINER(window), grid);
 
-	button = gtk_button_new_with_label("Quit");
-	g_signal_connect_swapped(button, "clicked", G_CALLBACK(kill_app), window);
+	load_button = gtk_button_new_with_label("Load");
+	save_button = gtk_button_new_with_label("Save");
+	g_signal_connect_swapped(load_button, "clicked", G_CALLBACK(kill_app), window);
+	g_signal_connect_swapped(save_button, "clicked", G_CALLBACK(kill_app), window);
 
 	/* Place the Quit button in the grid cell (0, 1), and make it
 	* span 2 columns.
 	*/
-	gtk_grid_attach(GTK_GRID(grid), button, 0, 1, 2, 1);
+	//gtk_grid_attach(GTK_GRID(grid), load_button, 2, 0, 1, 1);
+	//gtk_grid_attach(GTK_GRID(grid), save_button, 0, 0, 1, 1);
 
 	/* Create canvas as drawing_area object, and set size */
 	canvas = gtk_drawing_area_new();
 	gtk_widget_set_events(canvas, gtk_widget_get_events(canvas) | GDK_BUTTON_PRESS_MASK | GDK_POINTER_MOTION_MASK);
-	gtk_widget_set_size_request(canvas, image_ptr->width, image_ptr->height);
+	gtk_widget_set_size_request(canvas,
+		image_ptr -> width,
+		image_ptr -> height);
 	gtk_grid_attach(GTK_GRID(grid), canvas, 2, 2, 1, 1);
 	g_signal_connect(G_OBJECT(canvas), "draw",
 									G_CALLBACK(update_canvas), NULL);
@@ -600,7 +606,7 @@ void activate(GtkApplication *app, gpointer user_data) {
 	//TOOLBAR Window
 	/* create a new windowTool, and set its title */
 	windowTool = gtk_application_window_new(app);
-	gtk_window_set_title(GTK_WINDOW(windowTool), "windowTool");
+	gtk_window_set_title(GTK_WINDOW(windowTool), "Toolbar");
 
 	gtk_window_set_resizable(GTK_WINDOW(windowTool), FALSE);
 
@@ -610,6 +616,8 @@ void activate(GtkApplication *app, gpointer user_data) {
 	grid = gtk_grid_new();
 	gtk_grid_set_row_homogeneous(grid, 1);
 	gtk_grid_set_column_homogeneous(grid, 1);
+	gtk_widget_set_hexpand (save_button, FALSE);
+	gtk_widget_set_hexpand (load_button, FALSE);
 
 	/* Pack the container in the windowTool */
 	gtk_container_add (GTK_CONTAINER (windowTool), grid);
