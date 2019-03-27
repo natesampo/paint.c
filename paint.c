@@ -83,6 +83,7 @@ char* decimal_to_hex(int n) {
 	return hex;
 }
 
+
 int check_bounds(struct Image image, int x, int y) {
 	if ((x >= 0 && x < image.width) && (y >= 0 && y < image.height)) {
 		return 1;
@@ -91,8 +92,18 @@ int check_bounds(struct Image image, int x, int y) {
 	}
 }
 
-/* Updates one pixel in the image with the values passed */
-// NOTE: Assumes 4 color channel values
+/* 
+* Updates one pixel in the image with the values passed 
+
+* image - image structure to perform updates on
+* x - x location of pixel in image
+* y - y location of pixel in image
+* r - red value of pixel to be rendered
+* g - green value of pixel to be rendered
+* b - blue value of pixel to be rendered
+* a - alpha value of pixel to be rendered
+*/
+
 void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) {
 	if (check_bounds(image, x, y)) {
 
@@ -122,10 +133,28 @@ void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) 
 	}
 }
 
+/*
+* Return distance between two pixels
+* 
+* image - image structure to perform updates on
+* x1 - x coordinate of the first point
+* y1 - y coordinate of the first point
+* x2 - x coordinate of the second point
+* y2 - y coordinate of the second point
+*/
 double get_distance(int x1, int y1, int x2, int y2) {
 	return sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1));
 }
 
+/*
+* Draw a line between two points on the specificed image
+*
+* image - image structure to perform updates on
+* x1 - x coordinate of the first point
+* y1 - y coordinate of the first point
+* x2 - x coordinate of the second point
+* y2 - y coordinate of the second point
+*/
 void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
 	double distance = get_distance(x1, y1, x2, y2);
 	int i;
@@ -343,7 +372,12 @@ void save_pdc(struct Image image, char *file_name) {
 	fclose(output_file);
 }
 
-/* Create and allocate memory for a filled image of the specified width and height */
+/*
+* Create and allocate memory for a filled image of the specified width and height 
+*
+* width - width of image in pixels
+* height - height of image in pixels
+*/
 struct Image initialize_image(int width, int height) {
 	int i, j, k, l;
 	struct Image image;
@@ -374,7 +408,18 @@ struct Image initialize_image(int width, int height) {
 	return image;
 }
 
-/* Draw a single RGBA pixel on the canvas at position x, y */
+/* 
+* Draw a single RGBA pixel on the canvas at position x, y 
+*
+*
+* GTK cairo array to store color data
+* x - x location of pixel in image
+* y - y location of pixel in image
+* r - red value of pixel to be rendered
+* g - green value of pixel to be rendered
+* b - blue value of pixel to be rendered
+* a - alpha value of pixel to be rendered
+*/
 gboolean render_pixel(GtkWidget* canvas, cairo_t* cr, int x, int y, int r, int g, int b, int a) {
 
 	// Convert color values from [0, 255] to [0, 1]
@@ -393,7 +438,12 @@ gboolean render_pixel(GtkWidget* canvas, cairo_t* cr, int x, int y, int r, int g
 
 }
 
-/* Draws the pixels of the image onto the window to display the image. */
+/* 
+* Draws the pixels of the image onto the window to display the image. 
+*
+* GTK cairo array to store color data
+* data - values passed as gpointers, standard GTK function parameter
+*/
 gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
 
 	// Initialize variables for height, width, and color
@@ -423,13 +473,22 @@ gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
 
 }
 
+
+/*
+* End all GTK related functions for a given application
+*/
+
 void kill_app(GtkApplication *app, gpointer user_data){
 	g_application_quit (app);
 }
 
 
-//TODO Make the offset not wrap, actually make sense. Do research into how actual
-//Saturation effectors work
+/*
+* Change the saturation of every pixel in the image
+*
+*
+* TODO Make the offset not wrap, actually make sense. Do research into how actual saturation algorithims work
+*/
 void edit_saturation(gdouble pos){
 	int i,j;
 	double r,g,b,a;
@@ -472,6 +531,10 @@ void edit_saturation(gdouble pos){
 
 }
 
+/*
+* Callback function to be performed upon movement of the saturation slider
+*
+*/
 void scale_moved (GtkRange *range, gpointer  user_data){
    GtkWidget *mylabel = user_data;
    gdouble pos = gtk_range_get_value (range);
@@ -479,6 +542,12 @@ void scale_moved (GtkRange *range, gpointer  user_data){
    g_print("%f\n",pos);
 }
 
+/*
+* Begin the application window
+*
+* Like other GTK functions, app is the application running
+* user_data is pointers to values to be used in the corresponding functions
+*/
 void activate(GtkApplication *app, gpointer user_data) {
 
 	GtkWidget *windowTool;
@@ -605,12 +674,13 @@ void activate(GtkApplication *app, gpointer user_data) {
 	image = gtk_image_new_from_pixbuf(pixbuf);
 	gtk_button_set_image (GTK_BUTTON (button), image);
 
-	//Saturation Tool
+	//Saturation Slider
 	adjustment = gtk_adjustment_new (50, 0, 100, 5, 10, 0);
-	label = gtk_label_new ("");
+	label = gtk_label_new ("Saturation");
 	scale = gtk_scale_new (GTK_ORIENTATION_HORIZONTAL, adjustment);
   	gtk_scale_set_digits (GTK_SCALE (scale), 0);
-  	gtk_grid_attach (GTK_GRID (grid), scale, 0, 4, 2, 1);
+  	gtk_grid_attach (GTK_GRID (grid), scale, 0, 5, 2, 1);
+  	 gtk_grid_attach (GTK_GRID (grid), label, 0, 4, 2, 1);
   	gtk_widget_set_hexpand (scale, TRUE);
   	gtk_widget_set_valign (scale, GTK_ALIGN_START);
   	g_signal_connect (scale,
