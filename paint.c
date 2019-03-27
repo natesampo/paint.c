@@ -26,6 +26,8 @@ GtkWidget *canvas;
 int lastX = -1;
 int lastY = -1;
 
+int last_sat = 0;
+
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define MAX(X, Y) (((Y) < (X)) ? (X) : (Y))
 
@@ -89,7 +91,7 @@ int check_bounds(struct Image image, int x, int y) {
 	}
 }
 
-int 
+int
 
 /* Updates one pixel in the image with the values passed */
 // NOTE: Assumes 4 color channel values
@@ -427,15 +429,70 @@ void kill_app(GtkApplication *app, gpointer user_data){
 	g_application_quit (app);
 }
 
+
+//TODO Make the offset not wrap, actually make sense. Do research into how actual
+//Saturation effectors work
+void edit_saturation(gdouble pos){
+	int i,j;
+	double r,g,b,a;
+	guint width, height;
+	width = gtk_widget_get_allocated_width(canvas);
+	height = gtk_widget_get_allocated_height(canvas);
+
+
+
+	// Update each pixel's saturation
+	for (i=0; i<width; i++) {
+		for (j=0; j<height; j++) {
+
+			r = hex_to_decimal(image_ptr->data[i][j][0])*(pos-50);
+			g = hex_to_decimal(image_ptr->data[i][j][1])+(pos-50);
+			b = hex_to_decimal(image_ptr->data[i][j][2])+(pos-50);
+			a = hex_to_decimal(image_ptr->data[i][j][3])+(pos-50);
+			if(r>255){
+				r = 255;
+			}
+			if(g>255){
+				g = 255;
+			}
+			if(b>255){
+				b = 255;
+			}
+			if(r<0){
+				r = 0;
+			}
+			if(g<0){
+				g = 0;
+			}
+			if(b<0){
+				b = 0;
+			}
+
+			update_pixel(*image_ptr, i, j, r, g, b, a);
+		}
+	}
+
+}
+
+void scale_moved (GtkRange *range, gpointer  user_data){
+   GtkWidget *mylabel = user_data;
+   gdouble pos = gtk_range_get_value (range);
+   edit_saturation(pos);
+   g_print("%f\n",pos);
+}
+
 void activate(GtkApplication *app, gpointer user_data) {
 
 	GtkWidget *windowTool;
+	GtkWidget *label;
 	GtkWidget *image;
 	GdkPixbuf *pixbuf;
 	GtkWidget *window;
 	GtkGrid *grid;
 	GtkWidget *button;
 	GtkWidget *canvas_grid;
+	GtkWidget *scale;
+	GtkAdjustment *adjustment;
 
 	/* create a new window, and set its title */
 	window = gtk_application_window_new(app);
@@ -549,6 +606,20 @@ void activate(GtkApplication *app, gpointer user_data) {
 	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/line.png", 50, 50, 0, NULL);
 	image = gtk_image_new_from_pixbuf(pixbuf);
 	gtk_button_set_image (GTK_BUTTON (button), image);
+
+	//Saturation Tool
+	adjustment = gtk_adjustment_new (50, 0, 100, 5, 10, 0);
+	label = gtk_label_new ("");
+	scale = gtk_scale_new (GTK_ORIENTATION_HORIZONTAL, adjustment);
+  	gtk_scale_set_digits (GTK_SCALE (scale), 0);
+  	gtk_grid_attach (GTK_GRID (grid), scale, 0, 4, 2, 1);
+  	gtk_widget_set_hexpand (scale, TRUE);
+  	gtk_widget_set_valign (scale, GTK_ALIGN_START);
+  	g_signal_connect (scale,
+                    "value-changed",
+                    G_CALLBACK (scale_moved),
+                    label);
+
 
 	gtk_widget_show_all(windowTool);
 }
