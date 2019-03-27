@@ -91,13 +91,8 @@ int check_bounds(struct Image image, int x, int y) {
 	}
 }
 
-<<<<<<< HEAD
-
-/* Updates one pixel in the image with the values passed */
-// NOTE: Assumes 4 color channel values
-=======
-/* 
-* Updates one pixel in the image with the values passed 
+/*
+* Updates one pixel in the image with the values passed
 
 * image - image structure to perform updates on
 * x - x location of pixel in image
@@ -108,7 +103,6 @@ int check_bounds(struct Image image, int x, int y) {
 * a - alpha value of pixel to be rendered
 */
 
->>>>>>> e828b2f1e61c6bf740962caaae62f5384c2692f9
 void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) {
 	if (check_bounds(image, x, y)) {
 
@@ -144,7 +138,7 @@ void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) 
 
 /*
 * Return distance between two pixels
-* 
+*
 * image - image structure to perform updates on
 * x1 - x coordinate of the first point
 * y1 - y coordinate of the first point
@@ -384,7 +378,7 @@ void save_pdc(struct Image image, char *file_name) {
 }
 
 /*
-* Create and allocate memory for a filled image of the specified width and height 
+* Create and allocate memory for a filled image of the specified width and height
 *
 * width - width of image in pixels
 * height - height of image in pixels
@@ -419,8 +413,8 @@ struct Image initialize_image(int width, int height) {
 	return image;
 }
 
-/* 
-* Draw a single RGBA pixel on the canvas at position x, y 
+/*
+* Draw a single RGBA pixel on the canvas at position x, y
 *
 *
 * GTK cairo array to store color data
@@ -449,8 +443,8 @@ gboolean render_pixel(GtkWidget* canvas, cairo_t* cr, int x, int y, int r, int g
 
 }
 
-/* 
-* Draws the pixels of the image onto the window to display the image. 
+/*
+* Draws the pixels of the image onto the window to display the image.
 *
 * GTK cairo array to store color data
 * data - values passed as gpointers, standard GTK function parameter
@@ -600,13 +594,9 @@ void activate(GtkApplication *app, gpointer user_data) {
 	/* Create canvas as drawing_area object, and set size */
 	canvas = gtk_drawing_area_new();
 	gtk_widget_set_events(canvas, gtk_widget_get_events(canvas) | GDK_BUTTON_PRESS_MASK | GDK_POINTER_MOTION_MASK);
-<<<<<<< HEAD
 	gtk_widget_set_size_request(canvas,
 		image_ptr -> width,
 		image_ptr -> height);
-=======
-	gtk_widget_set_size_request(canvas, image_ptr->width, image_ptr->height);
->>>>>>> 884f24d7ccf6225ef013b2673bbfd8e911e6907c
 	gtk_grid_attach(GTK_GRID(grid), canvas, 2, 2, 1, 1);
 	g_signal_connect(G_OBJECT(canvas), "draw",
 									G_CALLBACK(update_canvas), NULL);
