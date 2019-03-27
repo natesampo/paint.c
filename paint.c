@@ -91,6 +91,16 @@ int check_bounds(struct Image image, int x, int y) {
 	}
 }
 
+/* Given two integers with integer weights, returns the weighted average. */
+double weighted_avg(double a, double a_wgt, double b, double b_wgt) {
+
+	double total = a_wgt + b_wgt;
+	if (total == 0) return 0;
+
+	return (a * 1.0 * a_wgt/total + b * 1.0 * b_wgt/total);
+
+}
+
 /*
 * Updates one pixel in the image with the values passed
 
@@ -106,11 +116,22 @@ int check_bounds(struct Image image, int x, int y) {
 void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) {
 	if (check_bounds(image, x, y)) {
 
+		int old_red = hex_to_decimal(image.data[x][y][0]);
+		int old_green = hex_to_decimal(image.data[x][y][1]);
+		int old_blue = hex_to_decimal(image.data[x][y][2]);
+		int old_alpha = hex_to_decimal(image.data[x][y][3]);
+
+		int alpha_weight = (255 - a) * old_alpha/255;
+		int new_red = weighted_avg(old_red, alpha_weight, r, a);
+		int new_green = weighted_avg(old_green, alpha_weight, g, a);
+		int new_blue = weighted_avg(old_blue, alpha_weight, b, a);
+		int new_alpha = weighted_avg(old_alpha, old_alpha, 255.0, a);
+
 		// Get colors from rgba inputs
-		char *red = decimal_to_hex(r);
-		char *green = decimal_to_hex(g);
-		char *blue = decimal_to_hex(b);
-		char *alpha = decimal_to_hex(a);
+		char *red = decimal_to_hex(new_red);
+		char *green = decimal_to_hex(new_green);
+		char *blue = decimal_to_hex(new_blue);
+		char *alpha = decimal_to_hex(new_alpha);
 
 		// Write data to image structure
 		image.data[x][y][0][0] = red[0];
@@ -167,7 +188,7 @@ void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
 	for(i=0; i<distance; i++) {
 		cx = x1 - (int) ((x1 - x2)*(i/distance));
 		cy = y1 - (int) ((y1 - y2)*(i/distance));
-		draw_circle(image, cx, cy, brush_ptr -> size);
+		draw_circle(image, cx, cy, brush_ptr -> size, brush_ptr -> hardness);
 	}
 }
 
@@ -217,9 +238,8 @@ void paint_bucket_mouse_clicked(GtkWidget *widget, GdkEventMotion *event, gpoint
 
 /* Draws a circle to the image structure at position (x, y) of diameter d.
 	 Uses the color defined by curr_color.
-	 TODO add hardness and antialiasing
 */
-void draw_circle(struct Image image, int x, int y, int d) {
+void draw_circle(struct Image image, int x, int y, int d, int hardness) {
 
 	int min_x = x - d/2;
 	int min_y = y - d/2;
@@ -230,10 +250,16 @@ void draw_circle(struct Image image, int x, int y, int d) {
 	for (int this_x = min_x; this_x <= max_x; this_x++) {
 		for (int this_y = min_y; this_y <= max_y; this_y++) {
 
-			dist = pow(this_x - x, 2) + pow(this_y - y, 2);
-			if (dist <= pow(d, 2)/4) {
+			dist = get_distance(this_x, this_y, x, y);
+			if (dist <= d/2) {
+				double amt_0 = 2.0*dist/d - (brush_ptr-> hardness / 100.1);
+				double amt_1 = 1.0 - 2.0*dist/d;
+				double hardness_mult = MAX(0, MIN(1, weighted_avg(1.0, amt_1, 0.0, amt_0)));
 				update_pixel(image, this_x, this_y,
-					curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
+					curr_color.red,
+					curr_color.green,
+					curr_color.blue,
+					(int)(curr_color.alpha * hardness_mult));
 			}
 		}
 	}
@@ -548,6 +574,38 @@ void scale_moved (GtkRange *range, gpointer  user_data){
 }
 
 /*
+* Callback function to be performed upon movement of the brush size slider
+*
+*/
+void brush_slider_moved (GtkRange *range, gpointer  user_data){
+   GtkWidget *mylabel = user_data;
+   gdouble pos = gtk_range_get_value (range);
+   brush_ptr -> size = pos;
+   g_print("%f\n",pos);
+}
+
+/*
+* Callback function to be performed upon movement of the hardness slider
+*
+*/
+void hardness_slider_moved (GtkRange *range, gpointer  user_data){
+   GtkWidget *mylabel = user_data;
+   gdouble pos = gtk_range_get_value (range);
+   brush_ptr -> hardness = pos;
+   g_print("%f\n",pos);
+}
+
+void clear(GtkWidget *widget, gpointer data) {
+
+	for (int x = 0; x < image_ptr -> width; x++) {
+		for (int y = 0; y < image_ptr -> height; y++) {
+			update_pixel(*image_ptr, x, y, 255, 255, 255, 255);
+		}
+	}
+
+}
+
+/*
 * Begin the application window
 *
 * Like other GTK functions, app is the application running
@@ -627,7 +685,7 @@ void activate(GtkApplication *app, gpointer user_data) {
 	//Selection Tool
 	button = gtk_button_new();
 	g_signal_connect(button, "clicked", G_CALLBACK(selecter), NULL);
-	gtk_grid_attach (GTK_GRID (grid), button, 0, 0, 1, 1);
+	//gtk_grid_attach (GTK_GRID (grid), button, 0, 0, 1, 1);
 	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/point.png", 50, 50, 0, NULL);
 	image = gtk_image_new_from_pixbuf(pixbuf);
 	gtk_button_set_image (GTK_BUTTON (button), image);
@@ -635,7 +693,7 @@ void activate(GtkApplication *app, gpointer user_data) {
 	//Move Tool
 	button = gtk_button_new();
 	g_signal_connect(button, "clicked", G_CALLBACK(move), NULL);
-	gtk_grid_attach (GTK_GRID (grid), button, 1, 0, 1, 1);
+	//gtk_grid_attach (GTK_GRID (grid), button, 1, 0, 1, 1);
 	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/point.png", 50, 50, 0, NULL);
 	image = gtk_image_new_from_pixbuf(pixbuf);
 	gtk_button_set_image (GTK_BUTTON (button), image);
@@ -656,11 +714,11 @@ void activate(GtkApplication *app, gpointer user_data) {
 	image = gtk_image_new_from_pixbuf(pixbuf);
 	gtk_button_set_image (GTK_BUTTON (button), image);
 
-	//Text tool
+	//Clear tool
 	button = gtk_button_new();
-	g_signal_connect(button, "clicked", G_CALLBACK(text), NULL);
+	g_signal_connect(button, "clicked", G_CALLBACK(clear), canvas);
 	gtk_grid_attach (GTK_GRID (grid), button, 0, 2, 1, 1);
-	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/text.png", 50, 50, 0, NULL);
+	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/sheet.png", 50, 50, 0, NULL);
 	image = gtk_image_new_from_pixbuf(pixbuf);
 	gtk_button_set_image (GTK_BUTTON (button), image);
 
@@ -701,6 +759,34 @@ void activate(GtkApplication *app, gpointer user_data) {
                     "value-changed",
                     G_CALLBACK (scale_moved),
                     label);
+
+		//Brush Size Slider
+		adjustment = gtk_adjustment_new (8, 1, 50, 5, 10, 0);
+		label = gtk_label_new ("Brush Size");
+		scale = gtk_scale_new (GTK_ORIENTATION_HORIZONTAL, adjustment);
+	  	gtk_scale_set_digits (GTK_SCALE (scale), 0);
+	  	gtk_grid_attach (GTK_GRID (grid), scale, 0, 7, 2, 1);
+	  	gtk_grid_attach (GTK_GRID (grid), label, 0, 6, 2, 1);
+	  	gtk_widget_set_hexpand (scale, TRUE);
+	  	gtk_widget_set_valign (scale, GTK_ALIGN_START);
+	  	g_signal_connect (scale,
+	                    "value-changed",
+	                    G_CALLBACK (brush_slider_moved),
+	                    label);
+
+		//Hardness Slider
+		adjustment = gtk_adjustment_new (100, 0, 100, 5, 10, 0);
+		label = gtk_label_new ("Brush Hardness");
+		scale = gtk_scale_new (GTK_ORIENTATION_HORIZONTAL, adjustment);
+	  	gtk_scale_set_digits (GTK_SCALE (scale), 0);
+	  	gtk_grid_attach (GTK_GRID (grid), scale, 0, 9, 2, 1);
+	  	gtk_grid_attach (GTK_GRID (grid), label, 0, 8, 2, 1);
+	  	gtk_widget_set_hexpand (scale, TRUE);
+	  	gtk_widget_set_valign (scale, GTK_ALIGN_START);
+	  	g_signal_connect (scale,
+	                    "value-changed",
+	                    G_CALLBACK (hardness_slider_moved),
+	                    label);
 
 
 	gtk_widget_show_all(windowTool);

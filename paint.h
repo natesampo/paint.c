@@ -18,7 +18,7 @@ int hex_to_decimal(char* hex);
 char* decimal_to_hex(int n);
 
 void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a);
-void draw_circle(struct Image image, int x, int y, int d);
+void draw_circle(struct Image image, int x, int y, int d, int hardness);
 
 Brush* new_brush(int size, int hardness);
 struct Image load_pdc(char *file_name);
