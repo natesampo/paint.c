@@ -20,6 +20,7 @@ struct byteColor curr_color;
 int lastX = -1;
 int lastY = -1;
 int brush_size = 6;
+int saturation = 0;
 
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define MAX(X, Y) (((Y) < (X)) ? (X) : (Y))
@@ -361,9 +362,22 @@ void kill_app(GtkApplication *app, gpointer user_data){
 	g_application_quit (app);
 }
 
+void edit_saturation(gdouble pos){
+	
+}
+
+void scale_moved (GtkRange *range, gpointer  user_data){
+   GtkWidget *mylabel = user_data;
+   gdouble pos = gtk_range_get_value (range);
+   edit_saturation(pos)
+   saturation = pos;
+   g_print("%f\n",pos);
+}
+
 void activate(GtkApplication *app, gpointer user_data) {
 
 	GtkWidget *windowTool;
+	GtkWidget *label;
 	GtkWidget *image;
 	GdkPixbuf *pixbuf;
 	GtkWidget *window;
@@ -371,6 +385,8 @@ void activate(GtkApplication *app, gpointer user_data) {
 	GtkWidget *button;
 	GtkWidget *canvas;
 	GtkWidget *canvas_grid;
+	GtkWidget *scale;
+	GtkAdjustment *adjustment;
 
 
 
@@ -487,6 +503,20 @@ void activate(GtkApplication *app, gpointer user_data) {
 	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/line.png", 50, 50, 0, NULL);
 	image = gtk_image_new_from_pixbuf(pixbuf);
 	gtk_button_set_image (GTK_BUTTON (button), image);
+
+	//Saturation Tool
+	adjustment = gtk_adjustment_new (0, 0, 100, 5, 10, 0);
+	label = gtk_label_new ("");
+	scale = gtk_scale_new (GTK_ORIENTATION_HORIZONTAL, adjustment);
+  	gtk_scale_set_digits (GTK_SCALE (scale), 0); 
+  	gtk_grid_attach (GTK_GRID (grid), scale, 0, 4, 2, 1);
+  	gtk_widget_set_hexpand (scale, TRUE);
+  	gtk_widget_set_valign (scale, GTK_ALIGN_START);
+  	g_signal_connect (scale, 
+                    "value-changed", 
+                    G_CALLBACK (scale_moved), 
+                    label);
+
 
 	gtk_widget_show_all(windowTool);
 }
