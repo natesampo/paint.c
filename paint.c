@@ -192,7 +192,7 @@ void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
 	}
 }
 
-void paint_bucket_recurse(struct byteColor *temp_color, int **visited, int x, int y, int origin_x, int origin_y) {
+void paint_bucket_recurse(struct byteColor *temp_color, int **visited, int x, int y) {
 
 	if (check_bounds(*image_ptr, x, y) &&
 		!visited[x][y] &&
@@ -204,16 +204,16 @@ void paint_bucket_recurse(struct byteColor *temp_color, int **visited, int x, in
 		visited[x][y] = 1;
 		update_pixel(*image_ptr, x, y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 
-		paint_bucket_recurse(temp_color, visited, x+1, y, origin_x, origin_y);
-		paint_bucket_recurse(temp_color, visited, x, y+1, origin_x, origin_y);
-		paint_bucket_recurse(temp_color, visited, x-1, y, origin_x, origin_y);
-		paint_bucket_recurse(temp_color, visited, x, y-1, origin_x, origin_y);
+		paint_bucket_recurse(temp_color, visited, x+1, y);
+		paint_bucket_recurse(temp_color, visited, x, y+1);
+		paint_bucket_recurse(temp_color, visited, x-1, y);
+		paint_bucket_recurse(temp_color, visited, x, y-1);
 	}
 }
 
-void paint_bucket_mouse_clicked(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
+void paint_bucket_mouse_clicked(GtkWidget *widget, GdkEventButton *event, gpointer data) {
 
-	if (check_bounds(*image_ptr, (int) event->x, (int) event->y)) {
+	if (event->button == 1 && check_bounds(*image_ptr, (int) event->x, (int) event->y)) {
 
 		struct byteColor temp_color;
 		temp_color.red = hex_to_decimal(image_ptr->data[(int) event->x][(int) event->y][0]);
@@ -227,12 +227,31 @@ void paint_bucket_mouse_clicked(GtkWidget *widget, GdkEventMotion *event, gpoint
 			visited[i] = (int *) calloc(image_ptr->height, sizeof(int));
 		}
 
-		paint_bucket_recurse(&temp_color, visited, (int) event->x, (int) event->y, (int) event->x, (int) event->y);
+		paint_bucket_recurse(&temp_color, visited, (int) event->x, (int) event->y);
 
 		for (i=0; i<image_ptr->width; i++) {
 			free(visited[i]);
 		}
 		free(visited);
+	}
+}
+
+void line_mouse_released(GtkWidget *widget, GdkEventButton *event, gpointer data) {
+
+	if (event->button == 1) {
+		draw_line(*image_ptr, lastX, lastY, event->x, event->y);
+		g_signal_handler_disconnect(canvas, tool);
+		tool = g_signal_connect(canvas, "button-press-event", G_CALLBACK(line_mouse_clicked), NULL);
+	}
+}
+
+void line_mouse_clicked(GtkWidget *widget, GdkEventButton *event, gpointer data) {
+
+	if (event->button == 1) {
+		lastX = (int) event->x;
+		lastY = (int) event->y;
+		g_signal_handler_disconnect(canvas, tool);
+		tool = g_signal_connect(canvas, "button-press-event", G_CALLBACK(line_mouse_released), NULL);
 	}
 }
 
@@ -266,34 +285,10 @@ void draw_circle(struct Image image, int x, int y, int d, int hardness) {
 
 }
 
-void line_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
-
-	if (event->state & GDK_BUTTON1_MASK) {
-		draw_line(*image_ptr, lastX, lastY, event->x, event->y);
-	}
-
-	lastX = event->x;
-	lastY = event->y;
-}
-
 void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
 
 	if (event->state & GDK_BUTTON1_MASK) {
 		draw_line(*image_ptr, lastX, lastY, event->x, event->y);
-
-		int low_x = MIN(event -> x, lastX);
-		int low_y = MIN(event -> y, lastY);
-		int high_x = MAX(event -> x, lastX);
-		int high_y = MAX(event -> y, lastY);
-		int width = MAX(high_x - low_x, 1);
-		int height = MAX(high_y - low_y, 1);
-		int b = (brush_ptr -> size)/2;	//	Border around draw area for buffer.
-		//gtk_widget_queue_draw_area(widget,
-		//		MAX(low_x - b, 0),
-		//		MAX(low_y - b, 0),
-		//		MIN(width + 2*b, image_ptr -> width - 1),
-		//		MIN(height + 2*b, image_ptr -> height - 1));
-
 	}
 
 	lastX = event->x;
@@ -573,6 +568,11 @@ void scale_moved (GtkRange *range, gpointer  user_data){
    g_print("%f\n",pos);
 }
 
+void set_last_mouse_point(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
+	lastX = (int) event->x;
+	lastY = (int) event->y;
+}
+
 /*
 * Callback function to be performed upon movement of the brush size slider
 *
@@ -740,7 +740,7 @@ void activate(GtkApplication *app, gpointer user_data) {
 
 	//Line Tool
 	button = gtk_button_new();
-	g_signal_connect(button, "clicked", G_CALLBACK(line), NULL);
+	g_signal_connect(button, "clicked", G_CALLBACK(line), canvas);
 	gtk_grid_attach (GTK_GRID (grid), button, 1, 3, 1, 1);
 	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/line.png", 50, 50, 0, NULL);
 	image = gtk_image_new_from_pixbuf(pixbuf);
