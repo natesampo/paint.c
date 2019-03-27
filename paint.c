@@ -12,8 +12,10 @@
 #define COLOR_CHANNELS 4
 #define CHAR_DEPTH 2
 
-
+// Initialize pointer to image
 struct Image* image_ptr;
+
+// Initialize brush object.
 Brush* brush_ptr;
 
 int tool = 0;
@@ -23,7 +25,6 @@ GtkWidget *canvas;
 
 int lastX = -1;
 int lastY = -1;
-int brush_size = 6;
 
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define MAX(X, Y) (((Y) < (X)) ? (X) : (Y))
@@ -88,15 +89,20 @@ int check_bounds(struct Image image, int x, int y) {
 	}
 }
 
+int 
+
 /* Updates one pixel in the image with the values passed */
 // NOTE: Assumes 4 color channel values
 void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) {
 	if (check_bounds(image, x, y)) {
+
+		// Get colors from rgba inputs
 		char *red = decimal_to_hex(r);
 		char *green = decimal_to_hex(g);
 		char *blue = decimal_to_hex(b);
 		char *alpha = decimal_to_hex(a);
 
+		// Write data to image structure
 		image.data[x][y][0][0] = red[0];
 		image.data[x][y][0][1] = red[1];
 		image.data[x][y][1][0] = green[0];
@@ -106,6 +112,7 @@ void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) 
 		image.data[x][y][3][0] = alpha[0];
 		image.data[x][y][3][1] = alpha[1];
 
+		// Free mallocated pointers
 		free(red);
 		free(green);
 		free(blue);
@@ -128,7 +135,7 @@ void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
 	for(i=0; i<distance; i++) {
 		cx = x1 - (int) ((x1 - x2)*(i/distance));
 		cy = y1 - (int) ((y1 - y2)*(i/distance));
-		draw_circle(image, cx, cy, brush_size);
+		draw_circle(image, cx, cy, brush_ptr -> size);
 	}
 }
 
@@ -140,7 +147,7 @@ void paint_bucket_recurse(struct byteColor temp_color, int **visited, int x, int
 		!strcmp(image_ptr->data[x][y][1], decimal_to_hex(temp_color.green)) &&
 		!strcmp(image_ptr->data[x][y][2], decimal_to_hex(temp_color.blue)) &&
 		!strcmp(image_ptr->data[x][y][3], decimal_to_hex(temp_color.alpha))) {
-		
+
 		visited[x][y] = 1;
 		update_pixel(*image_ptr, x, y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 
@@ -220,7 +227,7 @@ void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 		int high_y = MAX(event -> y, lastY);
 		int width = MAX(high_x - low_x, 1);
 		int height = MAX(high_y - low_y, 1);
-		int b = brush_size/2;	//	Border around draw area for buffer.
+		int b = (brush_ptr -> size)/2;	//	Border around draw area for buffer.
 		//gtk_widget_queue_draw_area(widget,
 		//		MAX(low_x - b, 0),
 		//		MAX(low_y - b, 0),
@@ -546,11 +553,23 @@ void activate(GtkApplication *app, gpointer user_data) {
 	gtk_widget_show_all(windowTool);
 }
 
+/* Initialize a new brush and return a pointer.
+*/
+Brush* new_brush(int size, int hardness) {
+
+	Brush* new_ptr = malloc(sizeof(Brush));
+	new_ptr -> size = size;
+	new_ptr -> hardness = hardness;
+	return new_ptr;
+
+}
+
 int main(int argc, char **argv) {
 	int status;
 	int status2;
 	struct Image image;
 	image_ptr = &image;
+	brush_ptr = new_brush(6, 100);
 
 	image = initialize_image(500, 500);
 

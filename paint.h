@@ -8,8 +8,10 @@ struct Image {	int width;
 				char ****data;
 			};
 
-typedef struct { int size;
-				int hardness;
+/* Brush structure */
+typedef struct {
+				int size;			//	Diameter of circular brush, in pixels
+				int hardness;	//	Hardness of brush, as integer from 0 to 100, where 0 is softest
 			} Brush;
 
 int hex_to_decimal(char* hex);
@@ -18,6 +20,7 @@ char* decimal_to_hex(int n);
 void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a);
 void draw_circle(struct Image image, int x, int y, int d);
 
+Brush* new_brush(int size, int hardness);
 struct Image load_pdc(char *file_name);
 void save_pdc(struct Image image, char *file_name);
 struct Image initialize_image(int width, int height);
