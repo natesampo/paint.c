@@ -91,8 +91,6 @@ int check_bounds(struct Image image, int x, int y) {
 	}
 }
 
-int
-
 /* Updates one pixel in the image with the values passed */
 // NOTE: Assumes 4 color channel values
 void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) {
