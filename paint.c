@@ -3,6 +3,7 @@
 #include <gtk/gtk.h>
 #include <time.h>
 #include <math.h>
+#include <string.h>
 #include "paint.h"
 #include "toolbar.h"
 
@@ -16,6 +17,7 @@ struct Image* image_ptr;
 int tool = 0;
 GdkRGBA color;
 struct byteColor curr_color;
+GtkWidget *canvas;
 
 int lastX = -1;
 int lastY = -1;
@@ -31,7 +33,7 @@ int saturation = 0;
  * Hex value must be exactly CHAR_DEPTH characters, and only contain numbers 0-9
  * and lowercase letters a-f.
  */
-int hex2d(char* hex) {
+int hex_to_decimal(char* hex) {
 
 	int total = 0;
 	for (int i = 0; i < CHAR_DEPTH; i++) {
@@ -77,34 +79,46 @@ char* decimal_to_hex(int n) {
 	return hex;
 }
 
+int check_bounds(struct Image image, int x, int y) {
+	if ((x >= 0 && x < image.width) && (y >= 0 && y < image.height)) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
 /* Updates one pixel in the image with the values passed */
 // NOTE: Assumes 4 color channel values
 void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) {
-	char *red = decimal_to_hex(r);
-	char *green = decimal_to_hex(g);
-	char *blue = decimal_to_hex(b);
-	char *alpha = decimal_to_hex(a);
+	if (check_bounds(image, x, y)) {
+		char *red = decimal_to_hex(r);
+		char *green = decimal_to_hex(g);
+		char *blue = decimal_to_hex(b);
+		char *alpha = decimal_to_hex(a);
 
-	image.data[x][y][0][0] = red[0];
-	image.data[x][y][0][1] = red[1];
-	image.data[x][y][1][0] = green[0];
-	image.data[x][y][1][1] = green[1];
-	image.data[x][y][2][0] = blue[0];
-	image.data[x][y][2][1] = blue[1];
-	image.data[x][y][3][0] = alpha[0];
-	image.data[x][y][3][1] = alpha[1];
+		image.data[x][y][0][0] = red[0];
+		image.data[x][y][0][1] = red[1];
+		image.data[x][y][1][0] = green[0];
+		image.data[x][y][1][1] = green[1];
+		image.data[x][y][2][0] = blue[0];
+		image.data[x][y][2][1] = blue[1];
+		image.data[x][y][3][0] = alpha[0];
+		image.data[x][y][3][1] = alpha[1];
 
-	free(red);
-	free(green);
-	free(blue);
-	free(alpha);
+		free(red);
+		free(green);
+		free(blue);
+		free(alpha);
+
+		gtk_widget_queue_draw_area(canvas, x, y, 1, 1);
+	}
 }
 
 double get_distance(int x1, int y1, int x2, int y2) {
 	return sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1));
 }
 
-static void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
+void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
 	double distance = get_distance(x1, y1, x2, y2);
 	int i;
 	int cx;
@@ -114,6 +128,48 @@ static void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
 		cx = x1 - (int) ((x1 - x2)*(i/distance));
 		cy = y1 - (int) ((y1 - y2)*(i/distance));
 		draw_circle(image, cx, cy, brush_size);
+	}
+}
+
+void paint_bucket_recurse(struct byteColor temp_color, int **visited, int x, int y) {
+
+	if (check_bounds(*image_ptr, x, y) &&
+		!visited[x][y] &&
+		!strcmp(image_ptr->data[x][y][0], decimal_to_hex(temp_color.red)) &&
+		!strcmp(image_ptr->data[x][y][1], decimal_to_hex(temp_color.green)) &&
+		!strcmp(image_ptr->data[x][y][2], decimal_to_hex(temp_color.blue)) &&
+		!strcmp(image_ptr->data[x][y][3], decimal_to_hex(temp_color.alpha))) {
+		
+		visited[x][y] = 1;
+		update_pixel(*image_ptr, x, y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
+
+		paint_bucket_recurse(temp_color, visited, x+1, y);
+		paint_bucket_recurse(temp_color, visited, x, y+1);
+		paint_bucket_recurse(temp_color, visited, x-1, y);
+		paint_bucket_recurse(temp_color, visited, x, y-1);
+
+	}
+}
+
+void paint_bucket_mouse_clicked(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
+
+	printf("%d\n", event->state);
+
+	if (event->state & GDK_BUTTON1_MASK && check_bounds(*image_ptr, (int) event->x, (int) event->y)) {
+
+		struct byteColor temp_color;
+		temp_color.red = hex_to_decimal(image_ptr->data[(int) event->x][(int) event->y][0]);
+		temp_color.green = hex_to_decimal(image_ptr->data[(int) event->x][(int) event->y][1]);
+		temp_color.blue = hex_to_decimal(image_ptr->data[(int) event->x][(int) event->y][2]);
+		temp_color.alpha = hex_to_decimal(image_ptr->data[(int) event->x][(int) event->y][3]);
+
+		int i;
+		int **visited = (int **) malloc(image_ptr->width * sizeof(int *));
+		for (i=0; i<image_ptr->width; i++) {
+			visited[i] = (int *) calloc(image_ptr->height, sizeof(int));
+		}
+
+		paint_bucket_recurse(temp_color, visited, (int) event->x, (int) event->y);
 	}
 }
 
@@ -154,8 +210,9 @@ void line_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) 
 
 void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
 
-	if ((event->state & GDK_BUTTON1_MASK) && (event->x > 0 && event->x < image_ptr->width) && (event->y > 0 && event->y < image_ptr->height)) {
+	if (event->state & GDK_BUTTON1_MASK) {
 		draw_line(*image_ptr, lastX, lastY, event->x, event->y);
+
 		int low_x = MIN(event -> x, lastX);
 		int low_y = MIN(event -> y, lastY);
 		int high_x = MAX(event -> x, lastX);
@@ -163,11 +220,11 @@ void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 		int width = MAX(high_x - low_x, 1);
 		int height = MAX(high_y - low_y, 1);
 		int b = brush_size/2;	//	Border around draw area for buffer.
-		gtk_widget_queue_draw_area(widget,
-				MAX(low_x - b, 0),
-				MAX(low_y - b, 0),
-				MIN(width + 2*b, image_ptr -> width - 1),
-				MIN(height + 2*b, image_ptr -> height - 1));
+		//gtk_widget_queue_draw_area(widget,
+		//		MAX(low_x - b, 0),
+		//		MAX(low_y - b, 0),
+		//		MIN(width + 2*b, image_ptr -> width - 1),
+		//		MIN(height + 2*b, image_ptr -> height - 1));
 
 	}
 
@@ -348,7 +405,7 @@ gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
 		for (int j = 0; j < height; j++) {
 			int c[COLOR_CHANNELS];
 			for (int k = 0; k < COLOR_CHANNELS; k++) {
-				c[k] = hex2d(((*image_ptr).data)[i][j][k]);
+				c[k] = hex_to_decimal(((*image_ptr).data)[i][j][k]);
 			}
 			render_pixel(canvas, cr, i, j, c[0], c[1], c[2], c[3]);
 		}
@@ -383,12 +440,9 @@ void activate(GtkApplication *app, gpointer user_data) {
 	GtkWidget *window;
 	GtkGrid *grid;
 	GtkWidget *button;
-	GtkWidget *canvas;
 	GtkWidget *canvas_grid;
 	GtkWidget *scale;
 	GtkAdjustment *adjustment;
-
-
 
 	/* create a new window, and set its title */
 	window = gtk_application_window_new(app);
@@ -417,7 +471,6 @@ void activate(GtkApplication *app, gpointer user_data) {
 	gtk_grid_attach(GTK_GRID(grid), canvas, 2, 2, 1, 1);
 	g_signal_connect(G_OBJECT(canvas), "draw",
 									G_CALLBACK(update_canvas), NULL);
-
 
 	gtk_widget_show_all(window);
 
@@ -482,7 +535,7 @@ void activate(GtkApplication *app, gpointer user_data) {
 
 	//Paint Bucket Tool
 	button = gtk_button_new();
-	g_signal_connect(button, "clicked", G_CALLBACK(bucket), NULL);
+	g_signal_connect(button, "clicked", G_CALLBACK(bucket), canvas);
 	gtk_grid_attach (GTK_GRID (grid), button, 1, 2, 1, 1);
 	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/bucket.png", 50, 50, 0, NULL);
 	image = gtk_image_new_from_pixbuf(pixbuf);
