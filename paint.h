@@ -23,8 +23,8 @@ void draw_circle(struct Image image, int x, int y, int d, int hardness);
 extern int tool;
 
 Brush* new_brush(int size, int hardness);
-struct Image load_pdc(char *file_name);
-void save_pdc(struct Image image, char *file_name);
+void load_pdc(GtkWidget *widget, gpointer data);
+void save_pdc(GtkWidget *widget, gpointer data);
 struct Image initialize_image(int width, int height);
 gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data);
 void activate(GtkApplication *app, gpointer user_data);

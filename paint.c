@@ -295,12 +295,36 @@ void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 	lastY = event->y;
 }
 
+void free_image(struct Image image) {
+	int i, j, k, width, height;
+
+	image.width = width;
+	image.height = height;
+
+	for (i=0; i<image.width; i++) {
+		for (j=0; j<image.width; j++) {
+			for (k=0; k<COLOR_CHANNELS; k++) {
+				free(image.data[i][j][k]);
+			}
+
+			free(image.data[i][j]);
+		}
+
+		free(image.data[i]);
+	}
+
+	free(image.data);
+}
+
 /* Load an image from a pdc file */
-struct Image load_pdc(char *file_name) {
+void load_pdc(GtkWidget *widget, gpointer data) {
+	g_print ("Load tool\n");
+
 	int input_char;
 	int width = 0, height = 0, i = 0, j = 0, k = 0, l = 0;
-	struct Image image;
+	struct Image *image = malloc(sizeof(struct Image));
 	FILE *input_file;
+	char *file_name = "your_file.pdc";
 
 	input_file = fopen(file_name, "r");
 
@@ -314,24 +338,24 @@ struct Image load_pdc(char *file_name) {
 		height = 10*height + input_char - 48;
 	}
 
-	image.width = width;
-	image.height = height;
+	image->width = width;
+	image->height = height;
 
 	// Allocate initial character arrays
-	image.data = (char ****) malloc(image.width * sizeof(char ***));
-	image.data[0] = (char ***) malloc(image.height * sizeof(char **));
-	image.data[0][0] = (char **) malloc(COLOR_CHANNELS * sizeof(char *));
-	image.data[0][0][0] = (char *) malloc(CHAR_DEPTH * sizeof(char));
+	image->data = (char ****) malloc(image->width * sizeof(char ***));
+	image->data[0] = (char ***) malloc(image->height * sizeof(char **));
+	image->data[0][0] = (char **) malloc(COLOR_CHANNELS * sizeof(char *));
+	image->data[0][0][0] = (char *) malloc(CHAR_DEPTH * sizeof(char));
 
 	// Populate entire image array by reading one character at a time from the pdc file
 	while((input_char = getc(input_file)) != EOF) {
-		image.data[i][j][k][l] = input_char;
+		image->data[i][j][k][l] = input_char;
 
 		// If we reach the character depth limit, move on to next color channel
 		if (l == CHAR_DEPTH - 1) {
 			l = 0;
 			k++;
-			image.data[i][j][k] = (char *) malloc(CHAR_DEPTH * sizeof(char));
+			image->data[i][j][k] = (char *) malloc(CHAR_DEPTH * sizeof(char));
 		} else {
 			l++;
 		}
@@ -340,23 +364,27 @@ struct Image load_pdc(char *file_name) {
 		if (k == COLOR_CHANNELS) {
 			k = 0;
 			j++;
-			image.data[i][j] = (char **) malloc(COLOR_CHANNELS * sizeof(char *));
-			image.data[i][j][k] = (char *) malloc(CHAR_DEPTH * sizeof(char));
+			image->data[i][j] = (char **) malloc(COLOR_CHANNELS * sizeof(char *));
+			image->data[i][j][k] = (char *) malloc(CHAR_DEPTH * sizeof(char));
 		}
 
 		// If we reach the end of a column, move on to the next row
-		if (j == image.height) {
+		if (j == image->height) {
 			j = 0;
 			i++;
-			image.data[i] = (char ***) malloc(image.height * sizeof(char **));
-			image.data[i][j] = (char **) malloc(COLOR_CHANNELS * sizeof(char *));
-			image.data[i][j][k] = (char *) malloc(CHAR_DEPTH * sizeof(char));
+			image->data[i] = (char ***) malloc(image->height * sizeof(char **));
+			image->data[i][j] = (char **) malloc(COLOR_CHANNELS * sizeof(char *));
+			image->data[i][j][k] = (char *) malloc(CHAR_DEPTH * sizeof(char));
 		}
 	}
 
 	fclose(input_file);
 
-	return image;
+	puts("done");
+	free_image(*image_ptr);
+	image_ptr = image;
+
+	gtk_widget_queue_draw_area(canvas, 0, 0, image->width, image->height);
 }
 
 /*
@@ -369,26 +397,28 @@ struct Image load_pdc(char *file_name) {
 
 	NOTE: There are no seperations in the data of the image file, ie no tabs, spaces, or newlines
 */
-void save_pdc(struct Image image, char *file_name) {
+void save_pdc(GtkWidget *widget, gpointer data) {
+	g_print ("Save tool\n");
 	int i, j, k, l;
 	FILE *output_file;
+	char *file_name = "your_file.pdc";
 
 	output_file = fopen(file_name, "w");
 
-	fprintf(output_file, "%d", image.width);
+	fprintf(output_file, "%d", image_ptr->width);
 	fputs("\n", output_file);
-	fprintf(output_file, "%d", image.height);
+	fprintf(output_file, "%d", image_ptr->height);
 	fputs("\n", output_file);
 
-	for (i=0; i<image.width; i++) {
+	for (i=0; i<image_ptr->width; i++) {
 
-		for (j=0; j<image.height; j++) {
+		for (j=0; j<image_ptr->height; j++) {
 
 			for (k=0; k<COLOR_CHANNELS; k++) {
 
 				for (l=0; l<CHAR_DEPTH; l++) {
 
-					fprintf(output_file, "%c", image.data[i][j][k][l]);
+					fprintf(output_file, "%c", image_ptr->data[i][j][k][l]);
 
 				}
 			}
@@ -619,7 +649,7 @@ void activate(GtkApplication *app, gpointer user_data) {
 	GdkPixbuf *pixbuf;
 	GtkWidget *window;
 	GtkGrid *grid;
-	GtkWidget *button, *load_button, *save_button;
+	GtkWidget *button;
 	GtkWidget *canvas_grid;
 	GtkWidget *scale;
 	GtkAdjustment *adjustment;
@@ -637,17 +667,6 @@ void activate(GtkApplication *app, gpointer user_data) {
 
 	/* Pack the container in the window */
 	gtk_container_add(GTK_CONTAINER(window), grid);
-
-	load_button = gtk_button_new_with_label("Load");
-	save_button = gtk_button_new_with_label("Save");
-	g_signal_connect_swapped(load_button, "clicked", G_CALLBACK(kill_app), window);
-	g_signal_connect_swapped(save_button, "clicked", G_CALLBACK(kill_app), window);
-
-	/* Place the Quit button in the grid cell (0, 1), and make it
-	* span 2 columns.
-	*/
-	//gtk_grid_attach(GTK_GRID(grid), load_button, 2, 0, 1, 1);
-	//gtk_grid_attach(GTK_GRID(grid), save_button, 0, 0, 1, 1);
 
 	/* Create canvas as drawing_area object, and set size */
 	canvas = gtk_drawing_area_new();
@@ -674,8 +693,6 @@ void activate(GtkApplication *app, gpointer user_data) {
 	grid = gtk_grid_new();
 	gtk_grid_set_row_homogeneous(grid, 1);
 	gtk_grid_set_column_homogeneous(grid, 1);
-	gtk_widget_set_hexpand (save_button, FALSE);
-	gtk_widget_set_hexpand (load_button, FALSE);
 
 	/* Pack the container in the windowTool */
 	gtk_container_add (GTK_CONTAINER (windowTool), grid);
@@ -695,6 +712,22 @@ void activate(GtkApplication *app, gpointer user_data) {
 	g_signal_connect(button, "clicked", G_CALLBACK(move), NULL);
 	//gtk_grid_attach (GTK_GRID (grid), button, 1, 0, 1, 1);
 	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/point.png", 50, 50, 0, NULL);
+	image = gtk_image_new_from_pixbuf(pixbuf);
+	gtk_button_set_image (GTK_BUTTON (button), image);
+
+	//Save Tool
+	button = gtk_button_new();
+	g_signal_connect(button, "clicked", G_CALLBACK(save_pdc), canvas);
+	gtk_grid_attach (GTK_GRID (grid), button, 0, 0, 1, 1);
+	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/save.jpg", 50, 50, 0, NULL);
+	image = gtk_image_new_from_pixbuf(pixbuf);
+	gtk_button_set_image (GTK_BUTTON (button), image);
+
+	//Load Tool
+	button = gtk_button_new();
+	g_signal_connect(button, "clicked", G_CALLBACK(load_pdc), canvas);
+	gtk_grid_attach (GTK_GRID (grid), button, 1, 0, 1, 1);
+	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/load.png", 50, 50, 0, NULL);
 	image = gtk_image_new_from_pixbuf(pixbuf);
 	gtk_button_set_image (GTK_BUTTON (button), image);
 
@@ -751,8 +784,8 @@ void activate(GtkApplication *app, gpointer user_data) {
 	label = gtk_label_new ("Saturation");
 	scale = gtk_scale_new (GTK_ORIENTATION_HORIZONTAL, adjustment);
   	gtk_scale_set_digits (GTK_SCALE (scale), 0);
-  	gtk_grid_attach (GTK_GRID (grid), scale, 0, 5, 2, 1);
-  	 gtk_grid_attach (GTK_GRID (grid), label, 0, 4, 2, 1);
+  	gtk_grid_attach (GTK_GRID (grid), scale, 0, 6, 2, 1);
+  	 gtk_grid_attach (GTK_GRID (grid), label, 0, 5, 2, 1);
   	gtk_widget_set_hexpand (scale, TRUE);
   	gtk_widget_set_valign (scale, GTK_ALIGN_START);
   	g_signal_connect (scale,
@@ -818,8 +851,6 @@ int main(int argc, char **argv) {
 
 	status = g_application_run(G_APPLICATION (app), argc, argv);
 	g_object_unref(app);
-
-	save_pdc(image, "wow.pdc");
 
 	return status;
 }
