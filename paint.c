@@ -133,6 +133,10 @@ void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) 
 		free(green);
 		free(blue);
 		free(alpha);
+	}
+
+	if (x >= 0 && x < gtk_widget_get_allocated_width(canvas) &&
+		y >= 0 && y < gtk_widget_get_allocated_height(canvas)) {
 
 		gtk_widget_queue_draw_area(canvas, x, y, 1, 1);
 	}
@@ -173,31 +177,28 @@ void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
 	}
 }
 
-void paint_bucket_recurse(struct byteColor temp_color, int **visited, int x, int y) {
+void paint_bucket_recurse(struct byteColor *temp_color, int **visited, int x, int y, int origin_x, int origin_y) {
 
 	if (check_bounds(*image_ptr, x, y) &&
 		!visited[x][y] &&
-		!strcmp(image_ptr->data[x][y][0], decimal_to_hex(temp_color.red)) &&
-		!strcmp(image_ptr->data[x][y][1], decimal_to_hex(temp_color.green)) &&
-		!strcmp(image_ptr->data[x][y][2], decimal_to_hex(temp_color.blue)) &&
-		!strcmp(image_ptr->data[x][y][3], decimal_to_hex(temp_color.alpha))) {
+		hex_to_decimal(image_ptr->data[x][y][0]) == temp_color->red &&
+		hex_to_decimal(image_ptr->data[x][y][1]) == temp_color->green &&
+		hex_to_decimal(image_ptr->data[x][y][2]) == temp_color->blue &&
+		hex_to_decimal(image_ptr->data[x][y][3]) == temp_color->alpha) {
 
 		visited[x][y] = 1;
 		update_pixel(*image_ptr, x, y, curr_color.red, curr_color.green, curr_color.blue, curr_color.alpha);
 
-		paint_bucket_recurse(temp_color, visited, x+1, y);
-		paint_bucket_recurse(temp_color, visited, x, y+1);
-		paint_bucket_recurse(temp_color, visited, x-1, y);
-		paint_bucket_recurse(temp_color, visited, x, y-1);
-
+		paint_bucket_recurse(temp_color, visited, x+1, y, origin_x, origin_y);
+		paint_bucket_recurse(temp_color, visited, x, y+1, origin_x, origin_y);
+		paint_bucket_recurse(temp_color, visited, x-1, y, origin_x, origin_y);
+		paint_bucket_recurse(temp_color, visited, x, y-1, origin_x, origin_y);
 	}
 }
 
 void paint_bucket_mouse_clicked(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
 
-	printf("%d\n", event->state);
-
-	if (event->state & GDK_BUTTON1_MASK && check_bounds(*image_ptr, (int) event->x, (int) event->y)) {
+	if (check_bounds(*image_ptr, (int) event->x, (int) event->y)) {
 
 		struct byteColor temp_color;
 		temp_color.red = hex_to_decimal(image_ptr->data[(int) event->x][(int) event->y][0]);
@@ -211,7 +212,12 @@ void paint_bucket_mouse_clicked(GtkWidget *widget, GdkEventMotion *event, gpoint
 			visited[i] = (int *) calloc(image_ptr->height, sizeof(int));
 		}
 
-		paint_bucket_recurse(temp_color, visited, (int) event->x, (int) event->y);
+		paint_bucket_recurse(&temp_color, visited, (int) event->x, (int) event->y, (int) event->x, (int) event->y);
+
+		for (i=0; i<image_ptr->width; i++) {
+			free(visited[i]);
+		}
+		free(visited);
 	}
 }
 
@@ -594,9 +600,13 @@ void activate(GtkApplication *app, gpointer user_data) {
 	/* Create canvas as drawing_area object, and set size */
 	canvas = gtk_drawing_area_new();
 	gtk_widget_set_events(canvas, gtk_widget_get_events(canvas) | GDK_BUTTON_PRESS_MASK | GDK_POINTER_MOTION_MASK);
+<<<<<<< HEAD
 	gtk_widget_set_size_request(canvas,
 		image_ptr -> width,
 		image_ptr -> height);
+=======
+	gtk_widget_set_size_request(canvas, image_ptr->width, image_ptr->height);
+>>>>>>> 884f24d7ccf6225ef013b2673bbfd8e911e6907c
 	gtk_grid_attach(GTK_GRID(grid), canvas, 2, 2, 1, 1);
 	g_signal_connect(G_OBJECT(canvas), "draw",
 									G_CALLBACK(update_canvas), NULL);
@@ -724,7 +734,7 @@ int main(int argc, char **argv) {
 	image_ptr = &image;
 	brush_ptr = new_brush(6, 100);
 
-	image = initialize_image(500, 500);
+	image = initialize_image(400, 400);
 
 	GtkApplication *app;
 	app = gtk_application_new("org.gtk.example", G_APPLICATION_FLAGS_NONE);
