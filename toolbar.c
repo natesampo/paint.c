@@ -62,4 +62,15 @@ void picker(GtkWidget *widget, gpointer data) {
 
 void line(GtkWidget *widget, gpointer data) {
 	g_print ("Line tool\n");
+	GtkWidget* canvas = data;
+
+	if (tool > 0) {
+		g_signal_handler_disconnect(canvas, tool);
+	}
+
+	lastX = -1;
+	lastY = -1;
+
+	tool = g_signal_connect(canvas, "button-press-event", G_CALLBACK(line_mouse_clicked), NULL);
+	printf("%d\n", tool);
 }
