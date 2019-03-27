@@ -25,7 +25,7 @@ As far as resources go, we've found a set we've consistently gone back to and fe
 
 
 ## The Program
-![alt text](https://github.com/natesampo/paint.c/blob/master/use.png "paint.c")
+![alt text](https://github.com/natesampo/paint.c/blob/master/pdc_screenshot.png "paint.c")
 
 Over the course of this project we succeeded in implementing several features both in the back end and user facing side of the application, meeting our minimum viable product and several of our stretch goals.
 
