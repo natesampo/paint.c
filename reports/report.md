@@ -14,9 +14,7 @@ As a lower bound, we hope to create an interface with a mouse-controlled brush t
  
 ## Learning Goals
 **Nate:** I hope to write a number of algorithms and improve my knowledge of the C language. In class so far, we've done a lot of smaller scale programming; implementing one method in a class for example. So, in accordance with this, I also want to structure our code in a nice, scalable way, such that adding another feature or expanding upon an existing one is simple and easy.
-
 **Jeremy:** I hope to improve my ability to make robust tools and data structures in a low-level language, which can be integrated well with other people's code. Additionally, I would like to explore the math and algorithms behind tools like the fill tool, image resizing, and anti-aliasing.
-
 **Ben:** I would like to get a better creating structures and frameworks to better allow for scalability. This projects seems to work well with this goal as it will be important how we first set up our project so that as we expand to more and more tools it will be intuitive how they will interact with the larger application, and how they interact with each other. I'd also to get better at working with APIs, a necessity given we will be working with a graphics library.
  
 ## Resources
@@ -25,11 +23,11 @@ As far as resources go, we've found a set we've consistently gone back to and fe
 
 
 ## The Program
-![alt text](https://github.com/natesampo/paint.c/blob/master/pdc_screenshot.png "paint.c")
+![alt text](https://github.com/natesampo/paint.c/blob/master/use.png "paint.c")
 
 Over the course of this project we succeeded in implementing several features both in the back end and user facing side of the application, meeting our minimum viable product and several of our stretch goals.
 
-At a bare bones level on the user side we implemented interact-able windows that allow a user to draw on a canvas and select a number of standard digital art tools. These windows were created using the GTK library.
+At a bare bones level on the user side we implemented interactable windows that allow a user to draw on a canvas and select a number of standard digital art tools. These windows were created using the GTK library.
 
 Of these tools we implemented the standard pencil, line, paint bucket, and color picker tools. The color picker was built up using the GTK library, with the color selected being used by other functions by storing it in structures to make parsing easy in both hex and value formats (see design decisions).
 
@@ -117,10 +115,9 @@ We felt we met our minimum viable product fairly earlier on, making a simple can
 
 As seen with our stretch goals, given more time there was many different ways we could have taken this project from additional tools, to canvas functions, to other functions that would draw it closer to more widely used programs like GIMP or Paint.<span></span>NET. Other additions could directly affect images like filters, bringing it closer still to industry standards like Photoshop.
 
-At the time of writing, we were currently working on implementing a saturation algorithm to accompany the existing slider as well as paint bucket implemented with recursion for efficiency. The saturation would have been a matter of research, while we were working around stack overflows due to recursion depth for the implementation of the paint bucket.
-
 **Jeremy:** I feel that I accomplished my learning goals reasonably well. I was able to work on some interesting optimization problems with the brush tool and canvas rendering. I would have liked to have had more time to implement extra features like shapes, distortions, and rotations, but it was beyond the scope of the project for our team in the amount of time we had. I did learn a lot about GTK and Cairo, which could be useful doing C projects in the future that require GUIs or graphics.
 
-**Nate:** I definitely worked on some interesting algorithms, and overall am a fan of the project we've created. Perhaps the most interesting problem I had to solve was the paint bucket tool. I first wrote a recursive approach to the problem, which worked for filling small sections of the canvas. However, when using this tool on large sections it would hit a max recursion depth and segfault. After this, I wrote a queue and iteratively added pixels to be filled into the queue. This was an interesting bit of problem solving and helped expand my understanding of C, and serves as a good example of my goals being fulfilled. I did feel that my goal of nicely structured code was addressed at the beginning, with the creation of header files, a makefile, and generally good organization, but as the project came to a close the paint.c file grew large and unwieldy.
+**Nate:** I definitely worked on some interesting algorithms, and overall am a fan of the project we've created. Perhaps the most interesting problem I had to solve was the paint bucket tool. I first wrote a recursive approach to the problem, which worked for filling small sections of the canvas. However, when using this tool on large sections it would hit a max recursion depth and segfault. Fixing this issue was an interesting bit of problem solving and helped expand my understanding of C, and serves as a good example of my goals being fulfilled. I did feel that my goal of nicely structured code was addressed at the beginning, with the creation of header files, a makefile, and generally good organization, but as the project came to a close the paint.c file grew large and unwieldy.
 
 **Ben:** I felt, given the parts of the project I worked on, I accomplished my learning goals, namely working with APIs. As the user interface is comprised entirely of GTK components, in addition to some of the backend like tool switching and starting new windows, working with existing functions, getting to understand GTK’s gobjects (gint, gchar, etc) and how to construct a larger framework from existing code definitely felt like I was meeting the goal I had in mind starting out this project. I would have liked to do a bit more with algorithms but still felt I got some use with them tangentially to the tool creation.
+
