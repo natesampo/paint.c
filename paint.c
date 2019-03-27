@@ -12,8 +12,12 @@
 #define COLOR_CHANNELS 4
 #define CHAR_DEPTH 2
 
-
+// Initialize pointer to image
 struct Image* image_ptr;
+
+// Initialize brush object.
+Brush* brush_ptr;
+
 int tool = 0;
 GdkRGBA color;
 struct byteColor curr_color;
@@ -21,7 +25,8 @@ GtkWidget *canvas;
 
 int lastX = -1;
 int lastY = -1;
-int brush_size = 6;
+
+int last_sat = 0;
 
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define MAX(X, Y) (((Y) < (X)) ? (X) : (Y))
@@ -78,6 +83,7 @@ char* decimal_to_hex(int n) {
 	return hex;
 }
 
+
 int check_bounds(struct Image image, int x, int y) {
 	if ((x >= 0 && x < image.width) && (y >= 0 && y < image.height)) {
 		return 1;
@@ -86,15 +92,28 @@ int check_bounds(struct Image image, int x, int y) {
 	}
 }
 
-/* Updates one pixel in the image with the values passed */
-// NOTE: Assumes 4 color channel values
+/* 
+* Updates one pixel in the image with the values passed 
+
+* image - image structure to perform updates on
+* x - x location of pixel in image
+* y - y location of pixel in image
+* r - red value of pixel to be rendered
+* g - green value of pixel to be rendered
+* b - blue value of pixel to be rendered
+* a - alpha value of pixel to be rendered
+*/
+
 void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) {
 	if (check_bounds(image, x, y)) {
+
+		// Get colors from rgba inputs
 		char *red = decimal_to_hex(r);
 		char *green = decimal_to_hex(g);
 		char *blue = decimal_to_hex(b);
 		char *alpha = decimal_to_hex(a);
 
+		// Write data to image structure
 		image.data[x][y][0][0] = red[0];
 		image.data[x][y][0][1] = red[1];
 		image.data[x][y][1][0] = green[0];
@@ -104,6 +123,7 @@ void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) 
 		image.data[x][y][3][0] = alpha[0];
 		image.data[x][y][3][1] = alpha[1];
 
+		// Free mallocated pointers
 		free(red);
 		free(green);
 		free(blue);
@@ -117,10 +137,28 @@ void update_pixel(struct Image image, int x, int y, int r, int g, int b, int a) 
 	}
 }
 
+/*
+* Return distance between two pixels
+* 
+* image - image structure to perform updates on
+* x1 - x coordinate of the first point
+* y1 - y coordinate of the first point
+* x2 - x coordinate of the second point
+* y2 - y coordinate of the second point
+*/
 double get_distance(int x1, int y1, int x2, int y2) {
 	return sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1));
 }
 
+/*
+* Draw a line between two points on the specificed image
+*
+* image - image structure to perform updates on
+* x1 - x coordinate of the first point
+* y1 - y coordinate of the first point
+* x2 - x coordinate of the second point
+* y2 - y coordinate of the second point
+*/
 void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
 	double distance = get_distance(x1, y1, x2, y2);
 	int i;
@@ -130,7 +168,7 @@ void draw_line(struct Image image, int x1, int y1, int x2, int y2) {
 	for(i=0; i<distance; i++) {
 		cx = x1 - (int) ((x1 - x2)*(i/distance));
 		cy = y1 - (int) ((y1 - y2)*(i/distance));
-		draw_circle(image, cx, cy, brush_size);
+		draw_circle(image, cx, cy, brush_ptr -> size);
 	}
 }
 
@@ -224,7 +262,7 @@ void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 		int high_y = MAX(event -> y, lastY);
 		int width = MAX(high_x - low_x, 1);
 		int height = MAX(high_y - low_y, 1);
-		int b = brush_size/2;	//	Border around draw area for buffer.
+		int b = (brush_ptr -> size)/2;	//	Border around draw area for buffer.
 		//gtk_widget_queue_draw_area(widget,
 		//		MAX(low_x - b, 0),
 		//		MAX(low_y - b, 0),
@@ -340,7 +378,12 @@ void save_pdc(struct Image image, char *file_name) {
 	fclose(output_file);
 }
 
-/* Create and allocate memory for a filled image of the specified width and height */
+/*
+* Create and allocate memory for a filled image of the specified width and height 
+*
+* width - width of image in pixels
+* height - height of image in pixels
+*/
 struct Image initialize_image(int width, int height) {
 	int i, j, k, l;
 	struct Image image;
@@ -371,7 +414,18 @@ struct Image initialize_image(int width, int height) {
 	return image;
 }
 
-/* Draw a single RGBA pixel on the canvas at position x, y */
+/* 
+* Draw a single RGBA pixel on the canvas at position x, y 
+*
+*
+* GTK cairo array to store color data
+* x - x location of pixel in image
+* y - y location of pixel in image
+* r - red value of pixel to be rendered
+* g - green value of pixel to be rendered
+* b - blue value of pixel to be rendered
+* a - alpha value of pixel to be rendered
+*/
 gboolean render_pixel(GtkWidget* canvas, cairo_t* cr, int x, int y, int r, int g, int b, int a) {
 
 	// Convert color values from [0, 255] to [0, 1]
@@ -390,7 +444,12 @@ gboolean render_pixel(GtkWidget* canvas, cairo_t* cr, int x, int y, int r, int g
 
 }
 
-/* Draws the pixels of the image onto the window to display the image. */
+/* 
+* Draws the pixels of the image onto the window to display the image. 
+*
+* GTK cairo array to store color data
+* data - values passed as gpointers, standard GTK function parameter
+*/
 gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
 
 	// Initialize variables for height, width, and color
@@ -420,19 +479,93 @@ gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data) {
 
 }
 
+
+/*
+* End all GTK related functions for a given application
+*/
+
 void kill_app(GtkApplication *app, gpointer user_data){
 	g_application_quit (app);
 }
 
+
+/*
+* Change the saturation of every pixel in the image
+*
+*
+* TODO Make the offset not wrap, actually make sense. Do research into how actual saturation algorithims work
+*/
+void edit_saturation(gdouble pos){
+	int i,j;
+	double r,g,b,a;
+	guint width, height;
+	width = gtk_widget_get_allocated_width(canvas);
+	height = gtk_widget_get_allocated_height(canvas);
+
+
+
+	// Update each pixel's saturation
+	for (i=0; i<width; i++) {
+		for (j=0; j<height; j++) {
+
+			r = hex_to_decimal(image_ptr->data[i][j][0])*(pos-50);
+			g = hex_to_decimal(image_ptr->data[i][j][1])+(pos-50);
+			b = hex_to_decimal(image_ptr->data[i][j][2])+(pos-50);
+			a = hex_to_decimal(image_ptr->data[i][j][3])+(pos-50);
+			if(r>255){
+				r = 255;
+			}
+			if(g>255){
+				g = 255;
+			}
+			if(b>255){
+				b = 255;
+			}
+			if(r<0){
+				r = 0;
+			}
+			if(g<0){
+				g = 0;
+			}
+			if(b<0){
+				b = 0;
+			}
+
+			update_pixel(*image_ptr, i, j, r, g, b, a);
+		}
+	}
+
+}
+
+/*
+* Callback function to be performed upon movement of the saturation slider
+*
+*/
+void scale_moved (GtkRange *range, gpointer  user_data){
+   GtkWidget *mylabel = user_data;
+   gdouble pos = gtk_range_get_value (range);
+   edit_saturation(pos);
+   g_print("%f\n",pos);
+}
+
+/*
+* Begin the application window
+*
+* Like other GTK functions, app is the application running
+* user_data is pointers to values to be used in the corresponding functions
+*/
 void activate(GtkApplication *app, gpointer user_data) {
 
 	GtkWidget *windowTool;
+	GtkWidget *label;
 	GtkWidget *image;
 	GdkPixbuf *pixbuf;
 	GtkWidget *window;
 	GtkGrid *grid;
 	GtkWidget *button;
 	GtkWidget *canvas_grid;
+	GtkWidget *scale;
+	GtkAdjustment *adjustment;
 
 	/* create a new window, and set its title */
 	window = gtk_application_window_new(app);
@@ -547,7 +680,33 @@ void activate(GtkApplication *app, gpointer user_data) {
 	image = gtk_image_new_from_pixbuf(pixbuf);
 	gtk_button_set_image (GTK_BUTTON (button), image);
 
+	//Saturation Slider
+	adjustment = gtk_adjustment_new (50, 0, 100, 5, 10, 0);
+	label = gtk_label_new ("Saturation");
+	scale = gtk_scale_new (GTK_ORIENTATION_HORIZONTAL, adjustment);
+  	gtk_scale_set_digits (GTK_SCALE (scale), 0);
+  	gtk_grid_attach (GTK_GRID (grid), scale, 0, 5, 2, 1);
+  	 gtk_grid_attach (GTK_GRID (grid), label, 0, 4, 2, 1);
+  	gtk_widget_set_hexpand (scale, TRUE);
+  	gtk_widget_set_valign (scale, GTK_ALIGN_START);
+  	g_signal_connect (scale,
+                    "value-changed",
+                    G_CALLBACK (scale_moved),
+                    label);
+
+
 	gtk_widget_show_all(windowTool);
+}
+
+/* Initialize a new brush and return a pointer.
+*/
+Brush* new_brush(int size, int hardness) {
+
+	Brush* new_ptr = malloc(sizeof(Brush));
+	new_ptr -> size = size;
+	new_ptr -> hardness = hardness;
+	return new_ptr;
+
 }
 
 int main(int argc, char **argv) {
@@ -555,6 +714,7 @@ int main(int argc, char **argv) {
 	int status2;
 	struct Image image;
 	image_ptr = &image;
+	brush_ptr = new_brush(6, 100);
 
 	image = initialize_image(400, 400);
 
