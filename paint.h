@@ -8,6 +8,10 @@ struct Image {	int width;
 				char ****data;
 			};
 
+typedef struct { int size;
+				int hardness;
+			} Brush;
+
 int hex_to_decimal(char* hex);
 char* decimal_to_hex(int n);
 

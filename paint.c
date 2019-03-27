@@ -14,6 +14,8 @@
 
 
 struct Image* image_ptr;
+Brush* brush_ptr;
+
 int tool = 0;
 GdkRGBA color;
 struct byteColor curr_color;
