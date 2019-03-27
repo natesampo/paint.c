@@ -747,11 +747,11 @@ void activate(GtkApplication *app, gpointer user_data) {
 	image = gtk_image_new_from_pixbuf(pixbuf);
 	gtk_button_set_image (GTK_BUTTON (button), image);
 
-	//Clear tool
+	//Line Tool
 	button = gtk_button_new();
-	g_signal_connect(button, "clicked", G_CALLBACK(clear), canvas);
+	g_signal_connect(button, "clicked", G_CALLBACK(line), canvas);
 	gtk_grid_attach (GTK_GRID (grid), button, 0, 2, 1, 1);
-	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/sheet.png", 50, 50, 0, NULL);
+	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/line.png", 50, 50, 0, NULL);
 	image = gtk_image_new_from_pixbuf(pixbuf);
 	gtk_button_set_image (GTK_BUTTON (button), image);
 
@@ -771,11 +771,11 @@ void activate(GtkApplication *app, gpointer user_data) {
 	image = gtk_image_new_from_pixbuf(pixbuf);
 	gtk_button_set_image (GTK_BUTTON (button), image);
 
-	//Line Tool
+	//Clear tool
 	button = gtk_button_new();
-	g_signal_connect(button, "clicked", G_CALLBACK(line), canvas);
+	g_signal_connect(button, "clicked", G_CALLBACK(clear), canvas);
 	gtk_grid_attach (GTK_GRID (grid), button, 1, 3, 1, 1);
-	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/line.png", 50, 50, 0, NULL);
+	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/sheet.png", 50, 50, 0, NULL);
 	image = gtk_image_new_from_pixbuf(pixbuf);
 	gtk_button_set_image (GTK_BUTTON (button), image);
 
