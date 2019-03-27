@@ -29,6 +29,22 @@ void pencil(GtkWidget *widget, gpointer data) {
 
 void eraser(GtkWidget *widget, gpointer data) {
 	g_print ("Eraser tool\n");
+	GtkWidget* canvas = data;
+
+	if (tool > 0) {
+		g_signal_handler_disconnect(canvas, tool);
+	}
+
+	lastX = -1;
+	lastY = -1;
+
+	curr_color.red = 255;
+	curr_color.green = 255;
+	curr_color.blue = 255;
+	curr_color.alpha = 255;
+
+	tool = g_signal_connect(canvas, "motion-notify-event", G_CALLBACK(eraser_mouse_motion), NULL);
+	printf("%d\n", tool);
 }
 
 void text(GtkWidget *widget, gpointer data) {

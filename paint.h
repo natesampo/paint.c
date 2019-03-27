@@ -29,6 +29,7 @@ struct Image initialize_image(int width, int height);
 gboolean update_canvas(GtkWidget* canvas, cairo_t *cr, gpointer data);
 void activate(GtkApplication *app, gpointer user_data);
 void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data);
+void eraser_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data);
 void paint_bucket_mouse_clicked(GtkWidget *widget, GdkEventButton *event, gpointer data);
 void line_mouse_released(GtkWidget *widget, GdkEventButton *event, gpointer data);
 void line_mouse_clicked(GtkWidget *widget, GdkEventButton *event, gpointer data);

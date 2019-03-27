@@ -295,6 +295,16 @@ void brush_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 	lastY = event->y;
 }
 
+void eraser_mouse_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
+
+	if (event->state & GDK_BUTTON1_MASK) {
+		draw_line(*image_ptr, lastX, lastY, event->x, event->y);
+	}
+
+	lastX = event->x;
+	lastY = event->y;
+}
+
 void free_image(struct Image image) {
 	int i, j, k, width, height;
 
@@ -741,7 +751,7 @@ void activate(GtkApplication *app, gpointer user_data) {
 
 	//Eraser Picker Tool
 	button = gtk_button_new();
-	g_signal_connect(button, "clicked", G_CALLBACK(eraser), NULL);
+	g_signal_connect(button, "clicked", G_CALLBACK(eraser), canvas);
 	gtk_grid_attach (GTK_GRID (grid), button, 1, 1, 1, 1);
 	pixbuf = gdk_pixbuf_new_from_file_at_scale("icons/eraser.png", 50, 50, 0, NULL);
 	image = gtk_image_new_from_pixbuf(pixbuf);
@@ -844,6 +854,11 @@ int main(int argc, char **argv) {
 	brush_ptr = new_brush(6, 100);
 
 	image = initialize_image(400, 400);
+
+	curr_color.red = 0;
+	curr_color.green = 0;
+	curr_color.blue = 0;
+	curr_color.alpha = 255;
 
 	GtkApplication *app;
 	app = gtk_application_new("org.gtk.example", G_APPLICATION_FLAGS_NONE);
