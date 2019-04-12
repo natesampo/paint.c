@@ -1,4 +1,4 @@
-# paint.c - Project Report
+# paint.c - An Image Editor by Programmers for Programmers
 ## Jeremy Ryan, Nate Sampo, Benjamin Ziemann
 Project code: https://github.com/natesampo/paint.c
 ## Project Goal
