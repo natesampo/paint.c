@@ -14,7 +14,9 @@ As a lower bound, we hope to create an interface with a mouse-controlled brush t
  
 ## Learning Goals
 **Nate:** I hope to write a number of algorithms and improve my knowledge of the C language. In class so far, we've done a lot of smaller scale programming; implementing one method in a class for example. So, in accordance with this, I also want to structure our code in a nice, scalable way, such that adding another feature or expanding upon an existing one is simple and easy.
+
 **Jeremy:** I hope to improve my ability to make robust tools and data structures in a low-level language, which can be integrated well with other people's code. Additionally, I would like to explore the math and algorithms behind tools like the fill tool, image resizing, and anti-aliasing.
+
 **Ben:** I would like to get a better creating structures and frameworks to better allow for scalability. This projects seems to work well with this goal as it will be important how we first set up our project so that as we expand to more and more tools it will be intuitive how they will interact with the larger application, and how they interact with each other. I'd also to get better at working with APIs, a necessity given we will be working with a graphics library.
  
 ## Resources
